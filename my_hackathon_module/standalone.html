@@ -5,11 +5,9 @@
   <title>StockSense — Modern Inventory Management System (IMS)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="StockSense digitizes inventory operations and replaces manual registers, Excel sheets, and scattered stock tracking with a centralized, real-time, easy-to-use application.">
-  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
   <style>
 :root {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -997,7 +995,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 </head>
 <body>
   <div id="app"></div>
-  
   <script>
 
 (function() {
@@ -1109,6 +1106,18 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 
   let currentRoute = location.hash.slice(1) || '/dashboard';
   let dashFilters = { type: 'All', status: 'All', warehouse: 'All', category: 'All', q: '' };
+  let receiptsFilter = { status: 'All', warehouse: 'All' };
+  let deliveriesFilter = { status: 'All', warehouse: 'All' };
+  let transfersFilter = { status: 'All', warehouse: 'All' };
+  let adjustmentsFilter = { warehouse: 'All' };
+
+  window.setReceiptStatusFilter = function(val) { receiptsFilter.status = val; renderApp(); };
+  window.setReceiptWarehouseFilter = function(val) { receiptsFilter.warehouse = val; renderApp(); };
+  window.setDeliveryStatusFilter = function(val) { deliveriesFilter.status = val; renderApp(); };
+  window.setDeliveryWarehouseFilter = function(val) { deliveriesFilter.warehouse = val; renderApp(); };
+  window.setTransferStatusFilter = function(val) { transfersFilter.status = val; renderApp(); };
+  window.setTransferSourceFilter = function(val) { transfersFilter.warehouse = val; renderApp(); };
+  window.setAdjWarehouseFilter = function(val) { adjustmentsFilter.warehouse = val; renderApp(); };
   let dashPage = 1;
   const DASH_PER_PAGE = 8;
   let activeModal = null;
@@ -1878,6 +1887,10 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   }
 
   function pageReceipts() {
+    let filtered = State.data.receipts;
+    if (receiptsFilter.status !== 'All') filtered = filtered.filter(r => r.status === receiptsFilter.status);
+    if (receiptsFilter.warehouse !== 'All') filtered = filtered.filter(r => r.warehouse === receiptsFilter.warehouse);
+
     return `
       <div class="page-head">
         <div>
@@ -1886,6 +1899,28 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
         </div>
         <div class="page-actions">
           <button class="btn btn-primary" onclick="openNewReceiptModal()">+ New Receipt</button>
+        </div>
+      </div>
+
+      <div class="filter-card" style="margin-bottom:16px;">
+        <div class="filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+          <div>
+            <label class="filter-label">Filter by Status</label>
+            <select class="filter-select" onchange="setReceiptStatusFilter(this.value)">
+              <option value="All" ${receiptsFilter.status==='All'?'selected':''}>All Statuses</option>
+              <option value="Draft" ${receiptsFilter.status==='Draft'?'selected':''}>Draft</option>
+              <option value="Waiting" ${receiptsFilter.status==='Waiting'?'selected':''}>Waiting</option>
+              <option value="Ready" ${receiptsFilter.status==='Ready'?'selected':''}>Ready</option>
+              <option value="Done" ${receiptsFilter.status==='Done'?'selected':''}>Done</option>
+            </select>
+          </div>
+          <div>
+            <label class="filter-label">Destination Warehouse Hub</label>
+            <select class="filter-select" onchange="setReceiptWarehouseFilter(this.value)">
+              <option value="All" ${receiptsFilter.warehouse==='All'?'selected':''}>All Hubs</option>
+              ${State.data.warehouses.map(w => `<option value="${w.id}" ${receiptsFilter.warehouse===w.id?'selected':''}>${esc(w.name.split('(')[0])}</option>`).join('')}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -1904,7 +1939,7 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
               </tr>
             </thead>
             <tbody>
-              ${State.data.receipts.map(r => {
+              ${filtered.length === 0 ? '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-faint);">No receipts matching selected filters</td></tr>' : filtered.map(r => {
                 const wh = findWarehouse(r.warehouse);
                 const itemsSummary = r.items.map(it => {
                   const p = findProduct(it.product);
@@ -2053,6 +2088,10 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   };
 
   function pageTransfers() {
+    let filtered = State.data.transfers;
+    if (transfersFilter.status !== 'All') filtered = filtered.filter(t => t.status === transfersFilter.status);
+    if (transfersFilter.warehouse !== 'All') filtered = filtered.filter(t => t.sourceWh === transfersFilter.warehouse || t.destWh === transfersFilter.warehouse);
+
     return `
       <div class="page-head">
         <div>
@@ -2061,6 +2100,28 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
         </div>
         <div class="page-actions">
           <button class="btn btn-primary" onclick="openNewTransferModal()">+ Schedule Transfer</button>
+        </div>
+      </div>
+
+      <div class="filter-card" style="margin-bottom:16px;">
+        <div class="filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+          <div>
+            <label class="filter-label">Filter by Status</label>
+            <select class="filter-select" onchange="setTransferStatusFilter(this.value)">
+              <option value="All" ${transfersFilter.status==='All'?'selected':''}>All Statuses</option>
+              <option value="Draft" ${transfersFilter.status==='Draft'?'selected':''}>Draft</option>
+              <option value="Waiting" ${transfersFilter.status==='Waiting'?'selected':''}>Waiting</option>
+              <option value="Ready" ${transfersFilter.status==='Ready'?'selected':''}>Ready</option>
+              <option value="Done" ${transfersFilter.status==='Done'?'selected':''}>Done</option>
+            </select>
+          </div>
+          <div>
+            <label class="filter-label">Warehouse Facility</label>
+            <select class="filter-select" onchange="setTransferSourceFilter(this.value)">
+              <option value="All" ${transfersFilter.warehouse==='All'?'selected':''}>All Facilities</option>
+              ${State.data.warehouses.map(w => `<option value="${w.id}" ${transfersFilter.warehouse===w.id?'selected':''}>${esc(w.name.split('(')[0])}</option>`).join('')}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -2080,7 +2141,7 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
               </tr>
             </thead>
             <tbody>
-              ${State.data.transfers.map(t => {
+              ${filtered.length === 0 ? '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--ink-faint);">No transfers matching selected filters</td></tr>' : filtered.map(t => {
                 const p = findProduct(t.product);
                 return `
                   <tr>
@@ -2132,6 +2193,9 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   };
 
   function pageAdjustments() {
+    let filtered = State.data.adjustments;
+    if (adjustmentsFilter.warehouse !== 'All') filtered = filtered.filter(a => a.warehouse === adjustmentsFilter.warehouse);
+
     return `
       <div class="page-head">
         <div>
@@ -2140,6 +2204,18 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
         </div>
         <div class="page-actions">
           <button class="btn btn-primary" onclick="openNewAdjustmentModal()">+ New Count Adjustment</button>
+        </div>
+      </div>
+
+      <div class="filter-card" style="margin-bottom:16px;">
+        <div class="filter-row" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+          <div>
+            <label class="filter-label">Filter by Warehouse Hub</label>
+            <select class="filter-select" onchange="setAdjWarehouseFilter(this.value)">
+              <option value="All" ${adjustmentsFilter.warehouse==='All'?'selected':''}>All Warehouse Hubs</option>
+              ${State.data.warehouses.map(w => `<option value="${w.id}" ${adjustmentsFilter.warehouse===w.id?'selected':''}>${esc(w.name.split('(')[0])}</option>`).join('')}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -2160,7 +2236,7 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
               </tr>
             </thead>
             <tbody>
-              ${State.data.adjustments.map(a => {
+              ${filtered.length === 0 ? '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--ink-faint);">No adjustments matching selected filter</td></tr>' : filtered.map(a => {
                 const p = findProduct(a.product);
                 const isNeg = a.diff < 0;
                 return `
@@ -2833,6 +2909,12 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
                 ${State.data.warehouses.map(w => `<option value="${w.id}">${esc(w.name)}</option>`).join('')}
               </select>
             </div>
+            <div>
+              <label class="filter-label">Rack Location (Odoo model rack_location)</label>
+              <input type="text" id="npRack" class="input-control" placeholder="e.g. Zone A / Rack 01 / Bin 101" value="Zone A / Rack 01 / Bin 101">
+            </div>
+          </div>
+          <div class="form-row">
             <div>
               <label class="filter-label">Unit Cost (₹)</label>
               <input type="number" id="npCost" class="input-control" value="500">

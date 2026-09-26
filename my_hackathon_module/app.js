@@ -108,6 +108,18 @@
 
   let currentRoute = location.hash.slice(1) || '/dashboard';
   let dashFilters = { type: 'All', status: 'All', warehouse: 'All', category: 'All', q: '' };
+  let receiptsFilter = { status: 'All', warehouse: 'All' };
+  let deliveriesFilter = { status: 'All', warehouse: 'All' };
+  let transfersFilter = { status: 'All', warehouse: 'All' };
+  let adjustmentsFilter = { warehouse: 'All' };
+
+  window.setReceiptStatusFilter = function(val) { receiptsFilter.status = val; renderApp(); };
+  window.setReceiptWarehouseFilter = function(val) { receiptsFilter.warehouse = val; renderApp(); };
+  window.setDeliveryStatusFilter = function(val) { deliveriesFilter.status = val; renderApp(); };
+  window.setDeliveryWarehouseFilter = function(val) { deliveriesFilter.warehouse = val; renderApp(); };
+  window.setTransferStatusFilter = function(val) { transfersFilter.status = val; renderApp(); };
+  window.setTransferSourceFilter = function(val) { transfersFilter.warehouse = val; renderApp(); };
+  window.setAdjWarehouseFilter = function(val) { adjustmentsFilter.warehouse = val; renderApp(); };
   let dashPage = 1;
   const DASH_PER_PAGE = 8;
   let activeModal = null;
@@ -877,6 +889,10 @@
   }
 
   function pageReceipts() {
+    let filtered = State.data.receipts;
+    if (receiptsFilter.status !== 'All') filtered = filtered.filter(r => r.status === receiptsFilter.status);
+    if (receiptsFilter.warehouse !== 'All') filtered = filtered.filter(r => r.warehouse === receiptsFilter.warehouse);
+
     return `
       <div class="page-head">
         <div>
@@ -885,6 +901,28 @@
         </div>
         <div class="page-actions">
           <button class="btn btn-primary" onclick="openNewReceiptModal()">+ New Receipt</button>
+        </div>
+      </div>
+
+      <div class="filter-card" style="margin-bottom:16px;">
+        <div class="filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+          <div>
+            <label class="filter-label">Filter by Status</label>
+            <select class="filter-select" onchange="setReceiptStatusFilter(this.value)">
+              <option value="All" ${receiptsFilter.status==='All'?'selected':''}>All Statuses</option>
+              <option value="Draft" ${receiptsFilter.status==='Draft'?'selected':''}>Draft</option>
+              <option value="Waiting" ${receiptsFilter.status==='Waiting'?'selected':''}>Waiting</option>
+              <option value="Ready" ${receiptsFilter.status==='Ready'?'selected':''}>Ready</option>
+              <option value="Done" ${receiptsFilter.status==='Done'?'selected':''}>Done</option>
+            </select>
+          </div>
+          <div>
+            <label class="filter-label">Destination Warehouse Hub</label>
+            <select class="filter-select" onchange="setReceiptWarehouseFilter(this.value)">
+              <option value="All" ${receiptsFilter.warehouse==='All'?'selected':''}>All Hubs</option>
+              ${State.data.warehouses.map(w => `<option value="${w.id}" ${receiptsFilter.warehouse===w.id?'selected':''}>${esc(w.name.split('(')[0])}</option>`).join('')}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -903,7 +941,7 @@
               </tr>
             </thead>
             <tbody>
-              ${State.data.receipts.map(r => {
+              ${filtered.length === 0 ? '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-faint);">No receipts matching selected filters</td></tr>' : filtered.map(r => {
                 const wh = findWarehouse(r.warehouse);
                 const itemsSummary = r.items.map(it => {
                   const p = findProduct(it.product);
@@ -1052,6 +1090,10 @@
   };
 
   function pageTransfers() {
+    let filtered = State.data.transfers;
+    if (transfersFilter.status !== 'All') filtered = filtered.filter(t => t.status === transfersFilter.status);
+    if (transfersFilter.warehouse !== 'All') filtered = filtered.filter(t => t.sourceWh === transfersFilter.warehouse || t.destWh === transfersFilter.warehouse);
+
     return `
       <div class="page-head">
         <div>
@@ -1060,6 +1102,28 @@
         </div>
         <div class="page-actions">
           <button class="btn btn-primary" onclick="openNewTransferModal()">+ Schedule Transfer</button>
+        </div>
+      </div>
+
+      <div class="filter-card" style="margin-bottom:16px;">
+        <div class="filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+          <div>
+            <label class="filter-label">Filter by Status</label>
+            <select class="filter-select" onchange="setTransferStatusFilter(this.value)">
+              <option value="All" ${transfersFilter.status==='All'?'selected':''}>All Statuses</option>
+              <option value="Draft" ${transfersFilter.status==='Draft'?'selected':''}>Draft</option>
+              <option value="Waiting" ${transfersFilter.status==='Waiting'?'selected':''}>Waiting</option>
+              <option value="Ready" ${transfersFilter.status==='Ready'?'selected':''}>Ready</option>
+              <option value="Done" ${transfersFilter.status==='Done'?'selected':''}>Done</option>
+            </select>
+          </div>
+          <div>
+            <label class="filter-label">Warehouse Facility</label>
+            <select class="filter-select" onchange="setTransferSourceFilter(this.value)">
+              <option value="All" ${transfersFilter.warehouse==='All'?'selected':''}>All Facilities</option>
+              ${State.data.warehouses.map(w => `<option value="${w.id}" ${transfersFilter.warehouse===w.id?'selected':''}>${esc(w.name.split('(')[0])}</option>`).join('')}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -1079,7 +1143,7 @@
               </tr>
             </thead>
             <tbody>
-              ${State.data.transfers.map(t => {
+              ${filtered.length === 0 ? '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--ink-faint);">No transfers matching selected filters</td></tr>' : filtered.map(t => {
                 const p = findProduct(t.product);
                 return `
                   <tr>
@@ -1131,6 +1195,9 @@
   };
 
   function pageAdjustments() {
+    let filtered = State.data.adjustments;
+    if (adjustmentsFilter.warehouse !== 'All') filtered = filtered.filter(a => a.warehouse === adjustmentsFilter.warehouse);
+
     return `
       <div class="page-head">
         <div>
@@ -1139,6 +1206,18 @@
         </div>
         <div class="page-actions">
           <button class="btn btn-primary" onclick="openNewAdjustmentModal()">+ New Count Adjustment</button>
+        </div>
+      </div>
+
+      <div class="filter-card" style="margin-bottom:16px;">
+        <div class="filter-row" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+          <div>
+            <label class="filter-label">Filter by Warehouse Hub</label>
+            <select class="filter-select" onchange="setAdjWarehouseFilter(this.value)">
+              <option value="All" ${adjustmentsFilter.warehouse==='All'?'selected':''}>All Warehouse Hubs</option>
+              ${State.data.warehouses.map(w => `<option value="${w.id}" ${adjustmentsFilter.warehouse===w.id?'selected':''}>${esc(w.name.split('(')[0])}</option>`).join('')}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -1159,7 +1238,7 @@
               </tr>
             </thead>
             <tbody>
-              ${State.data.adjustments.map(a => {
+              ${filtered.length === 0 ? '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--ink-faint);">No adjustments matching selected filter</td></tr>' : filtered.map(a => {
                 const p = findProduct(a.product);
                 const isNeg = a.diff < 0;
                 return `
@@ -1832,6 +1911,12 @@
                 ${State.data.warehouses.map(w => `<option value="${w.id}">${esc(w.name)}</option>`).join('')}
               </select>
             </div>
+            <div>
+              <label class="filter-label">Rack Location (Odoo model rack_location)</label>
+              <input type="text" id="npRack" class="input-control" placeholder="e.g. Zone A / Rack 01 / Bin 101" value="Zone A / Rack 01 / Bin 101">
+            </div>
+          </div>
+          <div class="form-row">
             <div>
               <label class="filter-label">Unit Cost (₹)</label>
               <input type="number" id="npCost" class="input-control" value="500">
