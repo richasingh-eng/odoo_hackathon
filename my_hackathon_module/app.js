@@ -1,14 +1,7 @@
-/**
- * StockSense — Modern Inventory Management System
- * Handcrafted by Frontend Engineering Team
- * Zero backend dependencies, reactive client-side state, full localStorage persistence.
- */
+
 (function() {
   "use strict";
 
-  /* =========================================================================
-     1. INITIAL STATE & SEED DATA (Indian Enterprise Context)
-     ========================================================================= */
   function getInitialData() {
     return {
       warehouses: [
@@ -113,14 +106,12 @@
     } catch(e) {}
   }
 
-  /* --- UI Session State --- */
   let currentRoute = location.hash.slice(1) || '/dashboard';
   let dashFilters = { type: 'All', status: 'All', warehouse: 'All', category: 'All', q: '' };
   let dashPage = 1;
   const DASH_PER_PAGE = 8;
   let activeModal = null;
 
-  // Apply theme to document
   document.documentElement.setAttribute('data-theme', State.theme);
 
   window.toggleTheme = function() {
@@ -132,9 +123,6 @@
     showToast('Switched to ' + State.theme + ' theme');
   };
 
-  /* =========================================================================
-     2. ROUTER & NAVIGATION
-     ========================================================================= */
   window.addEventListener('hashchange', function() {
     currentRoute = location.hash.slice(1) || '/dashboard';
     document.getElementById('sidebarNav')?.classList.remove('open');
@@ -151,7 +139,6 @@
     if (s) s.classList.toggle('open', open);
   };
 
-  /* Keyboard shortcut '/' focuses search */
   window.addEventListener('keydown', function(e) {
     if (e.key === '/' && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
       e.preventDefault();
@@ -163,9 +150,6 @@
     }
   });
 
-  /* =========================================================================
-     3. UTILITIES & FORMATTERS
-     ========================================================================= */
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
@@ -201,7 +185,6 @@
     return (name || 'Aarav Sharma').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
   }
 
-  /* Toasts */
   function showToast(msg) {
     let wrap = document.getElementById('toastWrap');
     if (!wrap) {
@@ -217,7 +200,6 @@
     setTimeout(() => t.remove(), 3200);
   }
 
-  /* Modals */
   window.openModal = function(html) {
     activeModal = html;
     let overlay = document.getElementById('modalOverlay');
@@ -238,7 +220,6 @@
     if (overlay) overlay.style.display = 'none';
   };
 
-  /* CSV Export Utility */
   window.exportCSV = function(filename, rows) {
     if (!rows || !rows.length) return showToast('No data available to export');
     const keys = Object.keys(rows[0]);
@@ -255,9 +236,6 @@
     showToast('Exported ' + filename + '.csv');
   };
 
-  /* =========================================================================
-     4. HEADER & SIDEBAR NAVIGATION
-     ========================================================================= */
   const NAV_SECTIONS = [
     { label: null, items: [{ path: '/dashboard', name: 'Dashboard', icon: '📊' }] },
     { label: 'Products', items: [
@@ -388,9 +366,6 @@
     `;
   }
 
-  /* =========================================================================
-     5. DASHBOARD VIEW (Requirements Section 4, 5, 6, 15)
-     ========================================================================= */
   function getDashboardFeed() {
     const feed = [];
     State.data.receipts.forEach(r => r.items.forEach(it => feed.push({
@@ -461,7 +436,6 @@
         </div>
       </div>
 
-      <!-- 6 Real-time KPI Cards (Requirements Section 4) -->
       <div class="kpi-row">
         <div class="kpi-box">
           <div class="kpi-top">
@@ -518,7 +492,6 @@
         </div>
       </div>
 
-      <!-- 4-Step Interactive Lifecycle Walkthrough -->
       <div style="background:var(--primary-light);border:1px solid var(--primary-border);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:20px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
           <div>
@@ -551,7 +524,6 @@
         </div>
       </div>
 
-      <!-- Quick Action Cards -->
       <div class="quick-row">
         <div class="quick-card" onclick="openNewReceiptModal()">
           <div class="quick-ico" style="background:var(--primary-light);color:var(--primary);">📥</div>
@@ -583,7 +555,6 @@
         </div>
       </div>
 
-      <!-- Dynamic Filters (Requirements Section 5) -->
       <div class="filter-box">
         <div class="filter-row">
           <div class="filter-field">
@@ -631,7 +602,6 @@
         </div>
       </div>
 
-      <!-- Recent Operations Table (Requirements Section 6) -->
       <div class="table-panel">
         <div class="table-panel-head">
           <div class="table-panel-title">
@@ -705,7 +675,6 @@
         `}
       </div>
 
-      <!-- Needs Attention / Low Stock Section (Requirements Section 15) -->
       <div class="attention-panel">
         <div class="attention-head">
           <div>
@@ -764,9 +733,6 @@
     renderApp();
   };
 
-  /* =========================================================================
-     6. PRODUCT MANAGEMENT (Requirements Section 7 & 8)
-     ========================================================================= */
   function pageProducts() {
     const prods = State.data.products;
     return `
@@ -910,11 +876,6 @@
     `;
   }
 
-  /* =========================================================================
-     7. VENDOR RECEIPTS (Requirements Section 9)
-     Workflow: Draft -> Waiting -> Ready -> Done
-     Validating automatically increments warehouse stock and adds ledger record
-     ========================================================================= */
   function pageReceipts() {
     return `
       <div class="page-head">
@@ -1002,10 +963,6 @@
     showToast('Receipt ' + r.number + ' validated! Stock increased automatically.');
   };
 
-  /* =========================================================================
-     8. CUSTOMER DELIVERIES (Requirements Section 10)
-     Workflow: Draft -> Waiting -> Ready -> Done (Pick -> Pack -> Validate)
-     ========================================================================= */
   function pageDeliveries() {
     return `
       <div class="page-head">
@@ -1061,7 +1018,6 @@
     const d = State.data.deliveries.find(x => x.id === id);
     if (!d || d.status === 'Done') return;
 
-    // Check available stock
     for (const it of d.items) {
       const p = findProduct(it.product);
       if (p && p.stock < it.qty) {
@@ -1095,10 +1051,6 @@
     showToast('Delivery ' + d.number + ' validated! Inventory reduced and dispatched.');
   };
 
-  /* =========================================================================
-     9. INTERNAL TRANSFERS (Requirements Section 11)
-     Relocates stock without changing company-wide inventory total
-     ========================================================================= */
   function pageTransfers() {
     return `
       <div class="page-head">
@@ -1178,10 +1130,6 @@
     showToast('Transfer ' + t.number + ' completed! Location updated in ledger.');
   };
 
-  /* =========================================================================
-     10. PHYSICAL STOCK ADJUSTMENTS (Requirements Section 12)
-     Live Difference Box: Recorded vs Counted vs Difference with reason
-     ========================================================================= */
   function pageAdjustments() {
     return `
       <div class="page-head">
@@ -1237,9 +1185,6 @@
     `;
   }
 
-  /* =========================================================================
-     11. MOVE HISTORY / STOCK LEDGER (Requirements Section 13)
-     ========================================================================= */
   function pageLedger() {
     return `
       <div class="page-head">
@@ -1298,9 +1243,6 @@
     `;
   }
 
-  /* =========================================================================
-     12. WAREHOUSES & LOCATIONS (Requirements Section 14)
-     ========================================================================= */
   function pageWarehouses() {
     return `
       <div class="page-head">
@@ -1343,7 +1285,6 @@
     `;
   }
 
-  /* Categories & Reordering Rules Screens */
   function pageCategories() {
     return `
       <div class="page-head">
@@ -1391,9 +1332,6 @@
     `;
   }
 
-  /* =========================================================================
-     10. AUTHENTICATION (Sign In, Sign Up, OTP Reset)
-     ========================================================================= */
   let otpFlowState = { email: '', otp: '849201' };
 
   window.handleLogin = function(e) {
@@ -1659,7 +1597,6 @@
     `;
   }
 
-  /* Profile & Settings Screens */
   function pageProfile() {
     return `
       <div class="page-head">
@@ -1726,11 +1663,7 @@
     location.reload();
   };
 
-  /* =========================================================================
-     13. INTERACTIVE 4-STEP LIFECYCLE SIMULATION
-     ========================================================================= */
   window.runDemoLifecycle = function() {
-    // 1. Vendor Receipt (+100 steel rods)
     const p1 = State.data.products.find(p => p.sku === 'STL-RD-012');
     if (!p1) return;
     p1.stock += 100;
@@ -1747,7 +1680,6 @@
       user: State.user.name
     });
 
-    // 2. Internal Transfer
     State.data.ledger.unshift({
       date: new Date().toISOString().replace('T', ' ').slice(0, 16),
       ref: 'TRF-SIM-2',
@@ -1760,7 +1692,6 @@
       user: State.user.name
     });
 
-    // 3. Customer Delivery (-20 units)
     p1.stock -= 20;
     p1.quantity_on_hand = p1.stock;
     State.data.ledger.unshift({
@@ -1775,7 +1706,6 @@
       user: State.user.name
     });
 
-    // 4. Physical Adjustment (-3 damaged items)
     p1.stock -= 3;
     p1.quantity_on_hand = p1.stock;
     State.data.adjustments.unshift({
@@ -1807,9 +1737,6 @@
     showToast('Executed full 4-step lifecycle simulation! All records posted to Stock Ledger.');
   };
 
-  /* =========================================================================
-     14. MODAL FORMS (Add Product, Receipt, Delivery, Transfer, Adjustment)
-     ========================================================================= */
   window.openNewActionModal = function() {
     openModal(`
       <div class="modal-content">
@@ -2221,7 +2148,6 @@
             </div>
           </div>
 
-          <!-- Live Difference Box (Requirements Section 12) -->
           <div class="diff-box">
             <div class="diff-col">
               <div class="diff-lbl">Recorded</div>
@@ -2320,16 +2246,12 @@
     showToast('Adjustment committed! Stock updated to ' + counted + ' ' + p.uom);
   };
 
-  /* =========================================================================
-     15. MAIN RENDER DISPATCHER
-     ========================================================================= */
   function renderApp() {
     const appEl = document.getElementById('app');
     if (!appEl) return;
 
     const clean = currentRoute.split('?')[0];
 
-    // Standalone Authentication Screens (without main sidebar/header)
     if (clean === '/login') {
       appEl.innerHTML = pageLogin() + '<div id="toastWrap" class="toast-wrap"></div>';
       return;
@@ -2395,7 +2317,6 @@
     `;
   }
 
-  // Initial Boot
   renderApp();
 
 })();

@@ -11,16 +11,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <style>
-/* ============================================================
-   StockSense — Inventory Management System (IMS)
-   Handcrafted, clean, professional SaaS interface
-   ============================================================ */
-
 :root {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: 'JetBrains Mono', 'Cascadia Code', 'SF Mono', Consolas, Menlo, Monaco, monospace;
 
-  /* Color Palette */
   --bg: #f8fafc;
   --surface: #ffffff;
   --surface-alt: #f1f5f9;
@@ -34,13 +28,11 @@
   --ink-faint: #64748b;
   --ink-inverted: #ffffff;
 
-  /* Primary Brand (Modern Indigo) */
   --primary: #4f46e5;
   --primary-hover: #4338ca;
   --primary-light: #eef2ff;
   --primary-border: #c7d2fe;
 
-  /* Semantic Feedback */
   --success: #059669;
   --success-bg: #ecfdf5;
   --warning: #d97706;
@@ -50,7 +42,6 @@
   --info: #2563eb;
   --info-bg: #eff6ff;
 
-  /* Sidebar */
   --sidebar-w: 240px;
   --sidebar-bg: #0f172a;
   --sidebar-text: #94a3b8;
@@ -107,11 +98,9 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 .mono { font-family: var(--font-mono); }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
-/* Layout Shell */
 #app { min-height: 100vh; display: flex; flex-direction: column; }
 .app-layout { display: flex; min-height: 100vh; }
 
-/* Left Sidebar */
 .sidebar {
   width: var(--sidebar-w);
   background-color: var(--sidebar-bg);
@@ -266,7 +255,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 .user-name { font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .user-role { font-size: 10.5px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Main Wrapper */
 .main-wrapper {
   flex: 1;
   margin-left: var(--sidebar-w);
@@ -275,7 +263,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   min-width: 0;
 }
 
-/* Header */
 .header {
   height: 60px;
   background: var(--surface);
@@ -370,7 +357,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   background: var(--danger);
 }
 
-/* Page Body */
 .page-body {
   padding: 24px;
   flex: 1;
@@ -399,7 +385,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   gap: 10px;
 }
 
-/* Common Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -423,7 +408,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 .btn-danger:hover { background: #be123c; }
 .btn-sm { height: 30px; padding: 0 10px; font-size: 12px; }
 
-/* 6 KPI Cards Grid (Requirements Section 4) */
 .kpi-row {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -473,7 +457,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   margin-top: auto;
 }
 
-/* Quick Action Banner */
 .quick-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -509,7 +492,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 .quick-title { font-weight: 700; font-size: 13px; color: var(--ink); }
 .quick-desc { font-size: 11.5px; color: var(--ink-soft); }
 
-/* Filter Card (Requirements Section 5) */
 .filter-box {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -549,7 +531,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
 }
 
-/* Data Table (Requirements Section 6) */
 .table-panel {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -626,7 +607,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   font-weight: 600;
 }
 
-/* Status Badges */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -650,7 +630,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 .qty-pos { color: var(--success); font-family: var(--font-mono); font-weight: 700; }
 .qty-neg { color: var(--danger); font-family: var(--font-mono); font-weight: 700; }
 
-/* Table Pagination */
 .pagination {
   padding: 10px 16px;
   border-top: 1px solid var(--line);
@@ -666,7 +645,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   gap: 6px;
 }
 
-/* Attention / Low Stock Section (Requirements Section 15) */
 .attention-panel {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -703,7 +681,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 .meter-fill.low { background: var(--warning); }
 .meter-fill.out { background: var(--danger); }
 
-/* Difference Box (Requirements Section 12) */
 .diff-box {
   background: var(--surface-alt);
   border: 1px solid var(--line);
@@ -718,7 +695,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 .diff-lbl { font-size: 11px; font-weight: 600; color: var(--ink-faint); }
 .diff-val { font-size: 18px; font-weight: 800; font-family: var(--font-mono); }
 
-/* Modal */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -768,7 +744,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 }
 .form-row-full { grid-column: span 2; margin-bottom: 12px; }
 
-/* Toast */
 .toast-wrap {
   position: fixed;
   bottom: 20px;
@@ -791,7 +766,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   gap: 8px;
 }
 
-/* Responsive */
 @media (max-width: 1200px) {
   .kpi-row { grid-template-columns: repeat(3, 1fr); }
   .filter-row { grid-template-columns: 1fr 1fr; }
@@ -813,7 +787,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   .form-row { grid-template-columns: 1fr; }
 }
 
-/* Authentication (Sign In, Sign Up, OTP Reset) */
 .auth-page {
   min-height: 100vh;
   display: flex;
@@ -1026,17 +999,10 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   <div id="app"></div>
   
   <script>
-/**
- * StockSense — Modern Inventory Management System
- * Handcrafted by Frontend Engineering Team
- * Zero backend dependencies, reactive client-side state, full localStorage persistence.
- */
+
 (function() {
   "use strict";
 
-  /* =========================================================================
-     1. INITIAL STATE & SEED DATA (Indian Enterprise Context)
-     ========================================================================= */
   function getInitialData() {
     return {
       warehouses: [
@@ -1141,14 +1107,12 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     } catch(e) {}
   }
 
-  /* --- UI Session State --- */
   let currentRoute = location.hash.slice(1) || '/dashboard';
   let dashFilters = { type: 'All', status: 'All', warehouse: 'All', category: 'All', q: '' };
   let dashPage = 1;
   const DASH_PER_PAGE = 8;
   let activeModal = null;
 
-  // Apply theme to document
   document.documentElement.setAttribute('data-theme', State.theme);
 
   window.toggleTheme = function() {
@@ -1160,9 +1124,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     showToast('Switched to ' + State.theme + ' theme');
   };
 
-  /* =========================================================================
-     2. ROUTER & NAVIGATION
-     ========================================================================= */
   window.addEventListener('hashchange', function() {
     currentRoute = location.hash.slice(1) || '/dashboard';
     document.getElementById('sidebarNav')?.classList.remove('open');
@@ -1179,7 +1140,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     if (s) s.classList.toggle('open', open);
   };
 
-  /* Keyboard shortcut '/' focuses search */
   window.addEventListener('keydown', function(e) {
     if (e.key === '/' && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
       e.preventDefault();
@@ -1191,9 +1151,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     }
   });
 
-  /* =========================================================================
-     3. UTILITIES & FORMATTERS
-     ========================================================================= */
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
@@ -1229,7 +1186,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     return (name || 'Aarav Sharma').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
   }
 
-  /* Toasts */
   function showToast(msg) {
     let wrap = document.getElementById('toastWrap');
     if (!wrap) {
@@ -1245,7 +1201,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     setTimeout(() => t.remove(), 3200);
   }
 
-  /* Modals */
   window.openModal = function(html) {
     activeModal = html;
     let overlay = document.getElementById('modalOverlay');
@@ -1266,7 +1221,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     if (overlay) overlay.style.display = 'none';
   };
 
-  /* CSV Export Utility */
   window.exportCSV = function(filename, rows) {
     if (!rows || !rows.length) return showToast('No data available to export');
     const keys = Object.keys(rows[0]);
@@ -1283,9 +1237,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     showToast('Exported ' + filename + '.csv');
   };
 
-  /* =========================================================================
-     4. HEADER & SIDEBAR NAVIGATION
-     ========================================================================= */
   const NAV_SECTIONS = [
     { label: null, items: [{ path: '/dashboard', name: 'Dashboard', icon: '📊' }] },
     { label: 'Products', items: [
@@ -1416,9 +1367,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     `;
   }
 
-  /* =========================================================================
-     5. DASHBOARD VIEW (Requirements Section 4, 5, 6, 15)
-     ========================================================================= */
   function getDashboardFeed() {
     const feed = [];
     State.data.receipts.forEach(r => r.items.forEach(it => feed.push({
@@ -1489,7 +1437,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
         </div>
       </div>
 
-      <!-- 6 Real-time KPI Cards (Requirements Section 4) -->
       <div class="kpi-row">
         <div class="kpi-box">
           <div class="kpi-top">
@@ -1546,7 +1493,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
         </div>
       </div>
 
-      <!-- 4-Step Interactive Lifecycle Walkthrough -->
       <div style="background:var(--primary-light);border:1px solid var(--primary-border);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:20px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
           <div>
@@ -1579,7 +1525,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
         </div>
       </div>
 
-      <!-- Quick Action Cards -->
       <div class="quick-row">
         <div class="quick-card" onclick="openNewReceiptModal()">
           <div class="quick-ico" style="background:var(--primary-light);color:var(--primary);">📥</div>
@@ -1611,7 +1556,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
         </div>
       </div>
 
-      <!-- Dynamic Filters (Requirements Section 5) -->
       <div class="filter-box">
         <div class="filter-row">
           <div class="filter-field">
@@ -1659,7 +1603,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
         </div>
       </div>
 
-      <!-- Recent Operations Table (Requirements Section 6) -->
       <div class="table-panel">
         <div class="table-panel-head">
           <div class="table-panel-title">
@@ -1733,7 +1676,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
         `}
       </div>
 
-      <!-- Needs Attention / Low Stock Section (Requirements Section 15) -->
       <div class="attention-panel">
         <div class="attention-head">
           <div>
@@ -1792,9 +1734,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     renderApp();
   };
 
-  /* =========================================================================
-     6. PRODUCT MANAGEMENT (Requirements Section 7 & 8)
-     ========================================================================= */
   function pageProducts() {
     const prods = State.data.products;
     return `
@@ -1938,11 +1877,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     `;
   }
 
-  /* =========================================================================
-     7. VENDOR RECEIPTS (Requirements Section 9)
-     Workflow: Draft -> Waiting -> Ready -> Done
-     Validating automatically increments warehouse stock and adds ledger record
-     ========================================================================= */
   function pageReceipts() {
     return `
       <div class="page-head">
@@ -2030,10 +1964,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     showToast('Receipt ' + r.number + ' validated! Stock increased automatically.');
   };
 
-  /* =========================================================================
-     8. CUSTOMER DELIVERIES (Requirements Section 10)
-     Workflow: Draft -> Waiting -> Ready -> Done (Pick -> Pack -> Validate)
-     ========================================================================= */
   function pageDeliveries() {
     return `
       <div class="page-head">
@@ -2089,7 +2019,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     const d = State.data.deliveries.find(x => x.id === id);
     if (!d || d.status === 'Done') return;
 
-    // Check available stock
     for (const it of d.items) {
       const p = findProduct(it.product);
       if (p && p.stock < it.qty) {
@@ -2123,10 +2052,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     showToast('Delivery ' + d.number + ' validated! Inventory reduced and dispatched.');
   };
 
-  /* =========================================================================
-     9. INTERNAL TRANSFERS (Requirements Section 11)
-     Relocates stock without changing company-wide inventory total
-     ========================================================================= */
   function pageTransfers() {
     return `
       <div class="page-head">
@@ -2206,10 +2131,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     showToast('Transfer ' + t.number + ' completed! Location updated in ledger.');
   };
 
-  /* =========================================================================
-     10. PHYSICAL STOCK ADJUSTMENTS (Requirements Section 12)
-     Live Difference Box: Recorded vs Counted vs Difference with reason
-     ========================================================================= */
   function pageAdjustments() {
     return `
       <div class="page-head">
@@ -2265,9 +2186,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     `;
   }
 
-  /* =========================================================================
-     11. MOVE HISTORY / STOCK LEDGER (Requirements Section 13)
-     ========================================================================= */
   function pageLedger() {
     return `
       <div class="page-head">
@@ -2326,9 +2244,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     `;
   }
 
-  /* =========================================================================
-     12. WAREHOUSES & LOCATIONS (Requirements Section 14)
-     ========================================================================= */
   function pageWarehouses() {
     return `
       <div class="page-head">
@@ -2371,7 +2286,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     `;
   }
 
-  /* Categories & Reordering Rules Screens */
   function pageCategories() {
     return `
       <div class="page-head">
@@ -2419,9 +2333,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     `;
   }
 
-  /* =========================================================================
-     10. AUTHENTICATION (Sign In, Sign Up, OTP Reset)
-     ========================================================================= */
   let otpFlowState = { email: '', otp: '849201' };
 
   window.handleLogin = function(e) {
@@ -2687,7 +2598,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     `;
   }
 
-  /* Profile & Settings Screens */
   function pageProfile() {
     return `
       <div class="page-head">
@@ -2754,11 +2664,7 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     location.reload();
   };
 
-  /* =========================================================================
-     13. INTERACTIVE 4-STEP LIFECYCLE SIMULATION
-     ========================================================================= */
   window.runDemoLifecycle = function() {
-    // 1. Vendor Receipt (+100 steel rods)
     const p1 = State.data.products.find(p => p.sku === 'STL-RD-012');
     if (!p1) return;
     p1.stock += 100;
@@ -2775,7 +2681,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
       user: State.user.name
     });
 
-    // 2. Internal Transfer
     State.data.ledger.unshift({
       date: new Date().toISOString().replace('T', ' ').slice(0, 16),
       ref: 'TRF-SIM-2',
@@ -2788,7 +2693,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
       user: State.user.name
     });
 
-    // 3. Customer Delivery (-20 units)
     p1.stock -= 20;
     p1.quantity_on_hand = p1.stock;
     State.data.ledger.unshift({
@@ -2803,7 +2707,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
       user: State.user.name
     });
 
-    // 4. Physical Adjustment (-3 damaged items)
     p1.stock -= 3;
     p1.quantity_on_hand = p1.stock;
     State.data.adjustments.unshift({
@@ -2835,9 +2738,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     showToast('Executed full 4-step lifecycle simulation! All records posted to Stock Ledger.');
   };
 
-  /* =========================================================================
-     14. MODAL FORMS (Add Product, Receipt, Delivery, Transfer, Adjustment)
-     ========================================================================= */
   window.openNewActionModal = function() {
     openModal(`
       <div class="modal-content">
@@ -3249,7 +3149,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
             </div>
           </div>
 
-          <!-- Live Difference Box (Requirements Section 12) -->
           <div class="diff-box">
             <div class="diff-col">
               <div class="diff-lbl">Recorded</div>
@@ -3348,16 +3247,12 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     showToast('Adjustment committed! Stock updated to ' + counted + ' ' + p.uom);
   };
 
-  /* =========================================================================
-     15. MAIN RENDER DISPATCHER
-     ========================================================================= */
   function renderApp() {
     const appEl = document.getElementById('app');
     if (!appEl) return;
 
     const clean = currentRoute.split('?')[0];
 
-    // Standalone Authentication Screens (without main sidebar/header)
     if (clean === '/login') {
       appEl.innerHTML = pageLogin() + '<div id="toastWrap" class="toast-wrap"></div>';
       return;
@@ -3423,7 +3318,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     `;
   }
 
-  // Initial Boot
   renderApp();
 
 })();
