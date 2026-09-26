@@ -259,15 +259,24 @@
 
   /* --- Navigation Spec --- */
   const NAV_ITEMS = [
-    { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
-    { path: '/task', label: 'Task', icon: 'task' },
-    { path: '/products', label: 'Inventory', icon: 'box', hasChevron: true },
-    { path: '/warehouses', label: 'Warehouse', icon: 'warehouse', hasChevron: true },
-    { path: '/deliveries', label: 'Orders', icon: 'receipt' },
-    { path: '/receipts', label: 'Shipments', icon: 'truck', hasChevron: true },
-    { path: '/workers', label: 'Workers', icon: 'workers' },
-    { path: '/ledger', label: 'Reports', icon: 'history' },
-    { path: '/support', label: 'Support', icon: 'support', hasChevron: true }
+    { group: null, items: [{ path: '/dashboard', label: 'Dashboard', icon: 'dashboard' }] },
+    { group: 'Products', items: [
+      { path: '/products', label: 'All Products', icon: 'box' },
+      { path: '/categories', label: 'Categories', icon: 'tag' },
+      { path: '/reorder-rules', label: 'Reordering Rules', icon: 'reorder' }
+    ]},
+    { group: 'Operations', items: [
+      { path: '/receipts', label: 'Receipts', icon: 'receipt' },
+      { path: '/deliveries', label: 'Delivery Orders', icon: 'truck' },
+      { path: '/transfers', label: 'Internal Transfers', icon: 'swap' },
+      { path: '/adjustments', label: 'Inventory Adjustments', icon: 'sliders' },
+      { path: '/ledger', label: 'Move History', icon: 'history' }
+    ]},
+    { group: 'Warehouse', items: [
+      { path: '/warehouses', label: 'Warehouses', icon: 'warehouse' },
+      { path: '/locations', label: 'Locations', icon: 'pin' }
+    ]},
+    { group: null, items: [{ path: '/settings', label: 'Settings', icon: 'settings' }] }
   ];
 
   function isPathActive(path) {
@@ -313,46 +322,34 @@
 
   /* --- Navigation & Shell Renderers --- */
   function renderSidebar() {
-    const user = AUTH.user || { name: 'Laura Moane', role: 'Warehouse Manager' };
-    const navItemsHtml = NAV_ITEMS.map(it => {
-      const active = isPathActive(it.path);
-      return `
-        <div class="nav-item ${active ? 'active' : ''}" onclick="go('${it.path}')" role="button" tabindex="0">
-          <span class="nav-icon">${icon(it.icon)}</span>
-          <span>${esc(it.label)}</span>
-          ${it.hasChevron ? `<span class="nav-chevron">${icon('chevronDown')}</span>` : ''}
-        </div>
-      `;
-    }).join('');
+    const user = AUTH.user || { name: 'Anita Menon', role: 'Inventory Manager' };
+    const groupsHtml = NAV_ITEMS.map(g => `
+      <div class="nav-section">
+        ${g.group ? `<div class="nav-section-title">${esc(g.group)}</div>` : ''}
+        ${g.items.map(it => `
+          <div class="nav-link ${isPathActive(it.path) ? 'active' : ''}" onclick="go('${it.path}')" role="button" tabindex="0">
+            ${icon(it.icon)}
+            <span>${esc(it.label)}</span>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
 
     return `
       <aside class="sidebar ${UI.sidebarOpen ? 'open' : ''}" id="sidebarNav">
-        <div class="sidebar-brand-wrap">
-          <a class="brand-link" onclick="go('/dashboard')">
-            ${icon('waresyncLogo')}
-            <span class="brand-name-waresync">Ware Sync</span>
-          </a>
-          <button class="btn-collapse-sidebar" onclick="toggleSidebar(false)" title="Collapse Sidebar">${icon('chevronRight')}</button>
-        </div>
-        
-        <button class="btn-add-item-waresync" onclick="toggleHeaderMenu('addItemDropdown', event)">
-          <span>+ Add New Item</span>
-          <span class="chevron-part">${icon('chevronDown')}</span>
-        </button>
-        ${UI.headerMenu === 'addItemDropdown' ? `
-          <div class="dropdown-menu" style="top:110px; left:14px; right:14px; width:auto;">
-            <div class="dropdown-item" onclick="go('/products/new')">${icon('box')} <span>New Product</span></div>
-            <div class="dropdown-item" onclick="go('/receipts/new')">${icon('receipt')} <span>New Vendor Receipt</span></div>
-            <div class="dropdown-item" onclick="go('/deliveries/new')">${icon('truck')} <span>New Delivery Order</span></div>
-            <div class="dropdown-item" onclick="go('/transfers/new')">${icon('swap')} <span>New Internal Transfer</span></div>
-            <div class="dropdown-item" onclick="go('/adjustments/new')">${icon('sliders')} <span>New Physical Adjustment</span></div>
+        <div class="sidebar-header">
+          <div class="brand-mark">${icon('logo')}</div>
+          <div class="brand-text">
+            <span class="brand-title">StockSense</span>
+            <span class="brand-subtitle">Inventory Management</span>
           </div>
-        ` : ''}
-
-        <nav class="sidebar-nav" style="padding-top:4px;">
-          ${navItemsHtml}
-        </nav>
-
+        </div>
+        <div class="sidebar-quick-action">
+          <button class="sidebar-quick-btn" onclick="openNewItemModal()">
+            ${icon('plus')} <span>+ Add New Item</span>
+          </button>
+        </div>
+        <nav class="sidebar-nav">${groupsHtml}</nav>
         <div class="sidebar-footer">
           <div class="theme-toggle-row">
             <span>Theme: <b>${UI.theme === 'dark' ? 'Dark' : 'Light'}</b></span>
@@ -383,32 +380,32 @@
   }
 
   function renderHeader() {
-    const user = AUTH.user || { name: 'Laura Moane', role: 'Warehouse Manager' };
+    const user = AUTH.user || { name: 'Anita Menon', role: 'Inventory Manager' };
     const lowStockAlerts = DATA.products.filter(p => stockStatus(p) !== 'in');
     return `
       <header class="top-header">
-        <div class="header-left" style="gap:14px;">
+        <div class="header-left">
           <button class="hamburger-btn" onclick="toggleSidebar(true)" aria-label="Toggle Navigation">${icon('menu')}</button>
-          <div class="waresync-search">
-            <span class="search-ico">${icon('search')}</span>
-            <input id="globalSearch" placeholder="Search item, order, or worker..." onkeydown="if(event.key==='Enter') go('/products?q='+encodeURIComponent(this.value))">
-            <span class="search-shortcut">/</span>
+          <div class="breadcrumbs">${getBreadcrumbs()}</div>
+        </div>
+        <div class="header-center">
+          <div class="global-search-box">
+            ${icon('search')}
+            <input id="globalSearch" placeholder="Search products, SKU or documents..." onkeydown="if(event.key==='Enter') go('/products?q='+encodeURIComponent(this.value))">
+            <span class="search-shortcut-tag">/</span>
           </div>
         </div>
-
-        <div class="header-right" style="gap:12px;">
-          <div class="date-selector-pill" onclick="toast('Date filter: August 23, 2025', 'info')">
-            <span>📅 August 23, 2025</span>
-            <span style="font-size:10px;opacity:0.6;">▼</span>
-          </div>
-
+        <div class="header-right">
+          <button class="icon-btn" onclick="toggleTheme()" title="Toggle Dark/Light Theme">
+            ${UI.theme === 'dark' ? icon('sun') : icon('moon')}
+          </button>
           <div style="position:relative;">
-            <button class="date-selector-pill" style="padding:6px 12px;gap:6px;" onclick="toggleHeaderMenu('notif', event)" title="Notifications">
-              <span>🔔</span>
-              <span class="notif-badge-pill">${lowStockAlerts.length} Low stock</span>
+            <button class="icon-btn" onclick="toggleHeaderMenu('notif', event)" title="Notifications">
+              ${icon('bell')}
+              ${lowStockAlerts.length > 0 ? `<span class="notification-badge"></span>` : ''}
             </button>
             ${UI.headerMenu === 'notif' ? `
-              <div class="dropdown-menu" style="width:290px; right:0;">
+              <div class="dropdown-menu" style="width:290px;">
                 <div class="dropdown-header">Stock Alerts (${lowStockAlerts.length})</div>
                 ${lowStockAlerts.length ? lowStockAlerts.slice(0, 5).map(p => `
                   <div class="dropdown-item" onclick="go('/products/${p.id}')">
@@ -423,26 +420,19 @@
               </div>
             ` : ''}
           </div>
-
           <div style="position:relative;">
-            <div class="waresync-profile" onclick="toggleHeaderMenu('user', event)">
-              <div class="avatar-img">${initials(user.name)}</div>
-              <span class="profile-name">${esc(user.name)}</span>
-              <span style="font-size:10px;opacity:0.6;">▼</span>
-            </div>
+            <button class="icon-btn" onclick="toggleHeaderMenu('user', event)" title="User Menu" style="padding:0;">
+              <div class="user-avatar" style="width:30px;height:30px;font-size:11px;">${initials(user.name)}</div>
+            </button>
             ${UI.headerMenu === 'user' ? `
-              <div class="dropdown-menu" style="right:0;">
-                <div class="dropdown-header">${esc(user.name)} (${esc(user.role)})</div>
+              <div class="dropdown-menu">
+                <div class="dropdown-header">${esc(user.name)}</div>
                 <div class="dropdown-item" onclick="go('/profile')">${icon('user')} <span>My Profile</span></div>
                 <div class="dropdown-item" onclick="go('/settings')">${icon('settings')} <span>Settings</span></div>
                 <div class="dropdown-item danger" onclick="doLogout()">${icon('logout')} <span>Log out</span></div>
               </div>
             ` : ''}
           </div>
-
-          <button class="icon-btn" onclick="toggleTheme()" title="Toggle Dark/Light Theme">
-            ${UI.theme === 'dark' ? icon('sun') : icon('moon')}
-          </button>
         </div>
       </header>
     `;
@@ -593,260 +583,90 @@
     const needsAttention = products.filter(p => stockStatus(p) !== 'in').slice(0, 5);
 
     return `
-      <!-- WareSync Title Section -->
-      <div class="dashboard-title-wrap">
-        <h1>Warehouse Manager Dashboard</h1>
-        <div class="sub-update">Update on 25 Feb 2025</div>
-      </div>
-
-      <!-- 4 Top KPI Cards Row -->
-      <div class="kpi-row-waresync">
-        <div class="kpi-card-waresync">
-          <div class="kpi-top">
-            <span class="kpi-title">${icon('box')} Stock Levels</span>
-            <span class="info-icon" title="Total registered items on hand">${icon('info')}</span>
-          </div>
-          <div class="kpi-num">12480</div>
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Inventory Dashboard</h1>
+          <div class="page-desc">Centralized real-time overview of warehouse stock, movements, and operational alerts.</div>
         </div>
-
-        <div class="kpi-card-waresync">
-          <div class="kpi-top">
-            <span class="kpi-title">${icon('receipt')} Active Orders</span>
-            <span class="info-icon" title="Customer fulfillment and shipments in progress">${icon('info')}</span>
+        <div class="page-actions">
+          <div style="font-size:12.5px;font-weight:600;background:var(--surface);border:1px solid var(--line);padding:7px 14px;border-radius:var(--radius);color:var(--ink-soft);">
+            Context: <b>Today, 26 Sep 2026</b>
           </div>
-          <div class="kpi-num">342</div>
-        </div>
-
-        <div class="kpi-card-waresync">
-          <div class="kpi-top">
-            <span class="kpi-title">${icon('truck')} Inbound Shipment</span>
-            <span class="info-icon" title="Supplier incoming consignments">${icon('info')}</span>
-          </div>
-          <div class="kpi-num">15</div>
-        </div>
-
-        <div class="kpi-card-waresync">
-          <div class="kpi-top">
-            <span class="kpi-title">${icon('workers')} Worker Efficiency</span>
-            <span class="info-icon" title="Average pick/pack task turnaround rate">${icon('info')}</span>
-          </div>
-          <div class="kpi-num">87%</div>
+          <button class="btn btn-primary" onclick="openNewItemModal()">
+            ${icon('plus')} <span>+ Add New Item</span>
+          </button>
         </div>
       </div>
 
-      <!-- 2 Main Visual Showcase Cards -->
-      <div class="showcase-grid-waresync">
-        <!-- Card 1: Inventory Turnover -->
-        <div class="showcase-card">
-          <div class="showcase-head">
-            <h3>Inventory Turnover</h3>
-            <div class="select-pill" onclick="toast('Turnover timeframe: Weekly', 'info')">
-              <span>Weekly</span>
-              <span style="font-size:10px;">▼</span>
-            </div>
+      <!-- 6 Requirements-Specified KPI Cards Grid (Section 4) -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">Total Stock in Hand</span>
+            <span class="kpi-icon-badge" style="background:var(--info-bg);color:var(--info);">${icon('box')}</span>
           </div>
-
-          <!-- 3D Isometric Inventory Cubes Centerpiece -->
-          <div class="iso-visual-wrap">
-            <div class="iso-controls">
-              <button class="iso-btn" onclick="toast('Rotated isometric stack 360°', 'info')" title="Rotate Visual">↺</button>
-              <button class="iso-btn" onclick="go('/products')" title="Expand View">⤢</button>
-            </div>
-            
-            <svg viewBox="0 0 460 250" width="100%" height="220" style="overflow:visible;" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="cubeTop1" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#9d91fa"/>
-                  <stop offset="100%" stop-color="#7a6cf0"/>
-                </linearGradient>
-                <linearGradient id="cubeLeft1" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#604fe6"/>
-                  <stop offset="100%" stop-color="#4938d1"/>
-                </linearGradient>
-                <linearGradient id="cubeRight1" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#3d2cb8"/>
-                  <stop offset="100%" stop-color="#2a1a9e"/>
-                </linearGradient>
-                <filter id="cubeShadow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#2a1a9e" flood-opacity="0.18"/>
-                </filter>
-              </defs>
-
-              <!-- Floor shadow -->
-              <ellipse cx="230" cy="205" rx="140" ry="38" fill="#1b1257" opacity="0.08"/>
-
-              <!-- Stack of Isometric Blocks -->
-              <g filter="url(#cubeShadow)">
-                <!-- Base Long Pallet Block -->
-                <polygon points="230,135 340,195 230,250 120,195" fill="url(#cubeTop1)"/>
-                <polygon points="120,195 230,250 230,270 120,215" fill="url(#cubeLeft1)"/>
-                <polygon points="230,250 340,195 340,215 230,270" fill="url(#cubeRight1)"/>
-
-                <!-- Middle Tier Left -->
-                <g transform="translate(-40, -32)">
-                  <polygon points="220,105 295,145 220,185 145,145" fill="#a89efb"/>
-                  <polygon points="145,145 220,185 220,210 145,170" fill="#6d5dfc"/>
-                  <polygon points="220,185 295,145 295,170 220,210" fill="#4d3dc9"/>
-                </g>
-
-                <!-- Middle Tier Right -->
-                <g transform="translate(45, -45)">
-                  <polygon points="240,95 315,135 240,175 165,135" fill="#b9b0fc"/>
-                  <polygon points="165,135 240,175 240,200 165,160" fill="#7a6cf0"/>
-                  <polygon points="240,175 315,135 315,160 240,200" fill="#5845d4"/>
-                </g>
-
-                <!-- Top Tier Cap Cube -->
-                <g transform="translate(0, -78)">
-                  <polygon points="230,65 295,100 230,135 165,100" fill="#d2ccfe"/>
-                  <polygon points="165,100 230,135 230,165 165,130" fill="#8b7ffc"/>
-                  <polygon points="230,135 295,100 295,130 230,165" fill="#604fe6"/>
-                </g>
-              </g>
-            </svg>
+          <div class="kpi-value">${fmtNum(totalUnits)}</div>
+          <div class="mini-bar">
+            <div class="mini-bar-fill" style="width:65%;background:var(--primary);"></div>
+            <div class="mini-bar-fill" style="width:25%;background:var(--info);"></div>
+            <div class="mini-bar-fill" style="width:10%;background:var(--success);"></div>
           </div>
-
-          <!-- Frosted Glass Bottom Overlay Card -->
-          <div class="frosted-stats-card">
-            <div class="frosted-top-row">
-              <span class="frosted-date">Wednesday 24, 2025</span>
-              <a class="frosted-link" onclick="go('/ledger')">View all</a>
-            </div>
-            <div class="frosted-metric-row">
-              <span class="frosted-big-val">7,5x</span>
-              <span class="badge-gain-pill">↑ 8.09%</span>
-            </div>
-
-            <!-- Orange Smooth Wave Curve -->
-            <svg viewBox="0 0 380 65" width="100%" height="60" preserveAspectRatio="none" style="overflow:visible;">
-              <defs>
-                <linearGradient id="turnoverWaveGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#ff5a1f" stop-opacity="0.35"/>
-                  <stop offset="100%" stop-color="#ff5a1f" stop-opacity="0.0"/>
-                </linearGradient>
-              </defs>
-              <path d="M 0,55 C 60,50 120,44 180,34 C 240,24 300,12 380,4 L 380,65 L 0,65 Z" fill="url(#turnoverWaveGrad)"/>
-              <path d="M 0,55 C 60,50 120,44 180,34 C 240,24 300,12 380,4" fill="none" stroke="#ff5a1f" stroke-width="2.6" stroke-linecap="round"/>
-              <circle cx="230" cy="26" r="4.5" fill="#ff5a1f"/>
-              <rect x="216" y="5" width="28" height="16" rx="8" fill="#ff5a1f"/>
-              <text x="230" y="16.5" fill="#ffffff" font-size="9" font-weight="700" text-anchor="middle">+20</text>
-            </svg>
-          </div>
+          <div class="kpi-footer"><span>${products.length} active SKUs tracked</span></div>
         </div>
 
-        <!-- Card 2: Space Utilization -->
-        <div class="showcase-card">
-          <div class="showcase-head">
-            <h3>Space Utilization</h3>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <button class="btn-storage" onclick="go('/warehouses')">Manage Storage</button>
-              <button class="btn-circle-action" onclick="go('/warehouses')">↗</button>
-            </div>
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">Low Stock Items</span>
+            <span class="kpi-icon-badge" style="background:var(--warning-bg);color:var(--warning);">${icon('alert')}</span>
           </div>
+          <div class="kpi-value">${lowCount}</div>
+          <div class="mini-bar"><div class="mini-bar-fill" style="width:${Math.min(100, lowCount * 33)}%;background:var(--warning);"></div></div>
+          <div class="kpi-footer"><span>At or below reorder threshold</span></div>
+        </div>
 
-          <!-- 3D Isometric Shipping Containers Centerpiece -->
-          <div class="iso-visual-wrap">
-            <svg viewBox="0 0 460 220" width="100%" height="200" style="overflow:visible;" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <filter id="containerShadow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2a1a9e" flood-opacity="0.14"/>
-                </filter>
-              </defs>
-
-              <g filter="url(#containerShadow)">
-                <!-- Back Container (Deep Violet / Indigo Cargo Unit) -->
-                <g transform="translate(130, 20)">
-                  <!-- Top Roof -->
-                  <polygon points="120,30 200,65 120,105 40,70" fill="#6366f1"/>
-                  <!-- Left Side with Corrugated Ribs -->
-                  <polygon points="40,70 120,105 120,175 40,140" fill="#4338ca"/>
-                  <!-- Vertical Corrugation lines on Side -->
-                  <line x1="56" y1="77" x2="56" y2="147" stroke="#3730a3" stroke-width="1.5"/>
-                  <line x1="72" y1="84" x2="72" y2="154" stroke="#3730a3" stroke-width="1.5"/>
-                  <line x1="88" y1="91" x2="88" y2="161" stroke="#3730a3" stroke-width="1.5"/>
-                  <line x1="104" y1="98" x2="104" y2="168" stroke="#3730a3" stroke-width="1.5"/>
-                  <!-- Right Door Face -->
-                  <polygon points="120,105 200,65 200,135 120,175" fill="#312e81"/>
-                  <!-- Door locking bars -->
-                  <line x1="150" y1="92" x2="150" y2="160" stroke="#4f46e5" stroke-width="2"/>
-                  <line x1="170" y1="82" x2="170" y2="150" stroke="#4f46e5" stroke-width="2"/>
-                </g>
-
-                <!-- Front Container (Light Lavender / Periwinkle Cargo Unit) -->
-                <g transform="translate(20, 55)">
-                  <!-- Top Roof -->
-                  <polygon points="120,30 220,75 120,120 20,75" fill="#e0e7ff"/>
-                  <!-- Left Ribbed Long Face -->
-                  <polygon points="20,75 120,120 120,185 20,140" fill="#c7d2fe"/>
-                  <!-- Corrugation Ribs on Side -->
-                  <line x1="36" y1="82" x2="36" y2="147" stroke="#a5b4fc" stroke-width="2"/>
-                  <line x1="52" y1="89" x2="52" y2="154" stroke="#a5b4fc" stroke-width="2"/>
-                  <line x1="68" y1="96" x2="68" y2="161" stroke="#a5b4fc" stroke-width="2"/>
-                  <line x1="84" y1="103" x2="84" y2="168" stroke="#a5b4fc" stroke-width="2"/>
-                  <line x1="100" y1="110" x2="100" y2="175" stroke="#a5b4fc" stroke-width="2"/>
-                  <!-- Right Door Face -->
-                  <polygon points="120,120 220,75 220,140 120,185" fill="#a5b4fc"/>
-                  <!-- Container Door Frame & Hardware -->
-                  <rect x="135" y="110" width="30" height="42" fill="#818cf8" rx="2" transform="skewY(-20)"/>
-                  <rect x="175" y="90" width="30" height="42" fill="#818cf8" rx="2" transform="skewY(-20)"/>
-                </g>
-              </g>
-            </svg>
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">Out of Stock Items</span>
+            <span class="kpi-icon-badge" style="background:var(--danger-bg);color:var(--danger);">${icon('alert')}</span>
           </div>
+          <div class="kpi-value">${outCount}</div>
+          <div class="mini-bar"><div class="mini-bar-fill" style="width:${Math.min(100, outCount * 50)}%;background:var(--danger);"></div></div>
+          <div class="kpi-footer"><span>Requires immediate restock</span></div>
+        </div>
 
-          <!-- Capacity Analytics & Breakdown Table -->
-          <div style="margin-top:auto;">
-            <div class="capacity-row">
-              <div>
-                <div class="cap-stat-label">Capacity Used</div>
-                <div class="cap-stat-val">82%</div>
-              </div>
-              <div style="text-align:right;">
-                <div class="cap-stat-label">Available Space</div>
-                <div class="cap-stat-val">18%</div>
-              </div>
-            </div>
-
-            <!-- Segmented Progress Bar -->
-            <div class="segmented-cap-bar">
-              <div class="seg-fill-orange" style="width:68%;"></div>
-              <div class="seg-fill-amber" style="width:14%;"></div>
-              <div class="seg-fill-empty" style="width:18%;"></div>
-            </div>
-
-            <!-- Mini Category Breakdown Table -->
-            <table class="mini-category-table">
-              <thead>
-                <tr>
-                  <th style="width:30%;">Category</th>
-                  <th style="width:20%;">Percentage</th>
-                  <th style="width:50%;">Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="cat-name">Raw Materials</td>
-                  <td>35%</td>
-                  <td>Pallets containing packaging materials, spa...</td>
-                </tr>
-                <tr>
-                  <td class="cat-name">Finished Goods</td>
-                  <td>28%</td>
-                  <td>Ready for dispatch in Zone A / North Depot</td>
-                </tr>
-                <tr>
-                  <td class="cat-name">Components</td>
-                  <td>19%</td>
-                  <td>Mechanical parts, fasteners & hardware assemblies</td>
-                </tr>
-              </tbody>
-            </table>
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">Pending Receipts</span>
+            <span class="kpi-icon-badge" style="background:var(--primary-light);color:var(--primary);">${icon('receipt')}</span>
           </div>
+          <div class="kpi-value">${pendingReceipts}</div>
+          <div class="mini-bar"><div class="mini-bar-fill" style="width:${Math.min(100, pendingReceipts * 25)}%;background:var(--primary);"></div></div>
+          <div class="kpi-footer"><span>Incoming vendor consignments</span></div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">Pending Deliveries</span>
+            <span class="kpi-icon-badge" style="background:var(--info-bg);color:var(--info);">${icon('truck')}</span>
+          </div>
+          <div class="kpi-value">${pendingDeliveries}</div>
+          <div class="mini-bar"><div class="mini-bar-fill" style="width:${Math.min(100, pendingDeliveries * 30)}%;background:var(--info);"></div></div>
+          <div class="kpi-footer"><span>Customer orders in pick / pack</span></div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">Internal Transfers</span>
+            <span class="kpi-icon-badge" style="background:#f5f3ff;color:#7c3aed;">${icon('swap')}</span>
+          </div>
+          <div class="kpi-value">${scheduledTransfers}</div>
+          <div class="mini-bar"><div class="mini-bar-fill" style="width:${Math.min(100, scheduledTransfers * 50)}%;background:#7c3aed;"></div></div>
+          <div class="kpi-footer"><span>Scheduled site stock moves</span></div>
         </div>
       </div>
 
-      <!-- Interactive 4-Step Lifecycle Walkthrough Banner -->
-      <div class="lifecycle-banner" style="margin-bottom:24px;border-radius:var(--radius-xl);">
+      <!-- Interactive 4-Step Inventory Lifecycle Walkthrough Banner -->
+      <div class="lifecycle-banner">
         <div class="lifecycle-header">
           <div class="lifecycle-title">
             <span class="lifecycle-badge">★</span>
@@ -859,7 +679,7 @@
             <button class="btn btn-secondary btn-sm" onclick="runDemoLifecycle()" id="btnSimulateLifecycle">
               ${icon('swap')} <span>Simulate Example Lifecycle</span>
             </button>
-            <button class="lifecycle-close" onclick="this.closest('.lifecycle-banner').style.display='none'" title="Dismiss">✕</button>
+            <button class="icon-btn" style="width:28px;height:28px;" onclick="this.closest('.lifecycle-banner').style.display='none'" title="Dismiss">✕</button>
           </div>
         </div>
 
@@ -888,39 +708,39 @@
       </div>
 
       <!-- Quick Action Cards -->
-      <div class="quick-actions-grid" style="margin-bottom:24px;">
+      <div class="quick-actions-grid">
         <div class="action-card" onclick="go('/receipts/new')">
           <div class="action-card-icon" style="background:var(--primary-light);color:var(--primary);">${icon('receipt')}</div>
-          <div class="action-card-body">
+          <div>
             <div class="action-card-title">Receive Stock</div>
             <div class="action-card-desc">Record incoming goods from vendor</div>
           </div>
         </div>
         <div class="action-card" onclick="go('/deliveries/new')">
           <div class="action-card-icon" style="background:#eff6ff;color:#2563eb;">${icon('truck')}</div>
-          <div class="action-card-body">
+          <div>
             <div class="action-card-title">Create Delivery</div>
             <div class="action-card-desc">Ship order to customer location</div>
           </div>
         </div>
         <div class="action-card" onclick="go('/transfers/new')">
           <div class="action-card-icon" style="background:#f5f3ff;color:#7c3aed;">${icon('swap')}</div>
-          <div class="action-card-body">
+          <div>
             <div class="action-card-title">Transfer Stock</div>
             <div class="action-card-desc">Move between internal locations</div>
           </div>
         </div>
         <div class="action-card" onclick="go('/adjustments/new')">
           <div class="action-card-icon" style="background:#fffbeb;color:#d97706;">${icon('sliders')}</div>
-          <div class="action-card-body">
+          <div>
             <div class="action-card-title">Adjust Inventory</div>
             <div class="action-card-desc">Reconcile physical stock count</div>
           </div>
         </div>
       </div>
 
-      <!-- Dynamic Multi-Filter Toolbar -->
-      <div class="filter-card" style="border-radius:var(--radius-xl);margin-bottom:20px;">
+      <!-- Dynamic Multi-Filter Toolbar (Section 5) -->
+      <div class="filter-card">
         <div class="filter-card-header">
           <span class="filter-card-title">${icon('filter')} Dynamic Operations Filter</span>
           ${activeFilterCount > 0 ? `
@@ -975,8 +795,8 @@
         </div>
       </div>
 
-      <!-- Recent Operations Table -->
-      <div class="table-container" style="border-radius:var(--radius-xl);">
+      <!-- Recent Operations Table (Section 6) -->
+      <div class="table-container">
         <div class="table-header-row">
           <div class="table-title">
             <span>Recent Operations & Movements</span>
@@ -988,11 +808,11 @@
         </div>
 
         ${pagedFeed.length === 0 ? `
-          <div class="empty-state">
-            <div class="empty-state-icon">${icon('empty')}</div>
-            <div class="empty-state-title">No Operations Found</div>
-            <div class="empty-state-desc">No stock operations match the selected filters.</div>
-            <button class="btn btn-secondary btn-sm" onclick="resetDashFilters()">Reset Filters</button>
+          <div style="padding:48px;text-align:center;">
+            <div style="font-size:32px;margin-bottom:8px;">📦</div>
+            <div style="font-weight:700;font-size:15px;color:var(--ink);">No Operations Found</div>
+            <div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px;">No stock movements match the selected filters.</div>
+            <button class="btn btn-secondary btn-sm" style="margin-top:14px;" onclick="resetDashFilters()">Reset Filters</button>
           </div>
         ` : `
           <div class="table-responsive">
@@ -1056,6 +876,51 @@
             </div>
           </div>
         `}
+      </div>
+
+      <!-- Needs Attention / Low Stock Section (Section 15) -->
+      <div class="attention-card">
+        <div class="attention-header">
+          <div>
+            <div class="attention-title">Stock Requiring Immediate Attention</div>
+            <div class="attention-desc">Products at or below safety reorder threshold</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="go('/reorder-rules')">
+            ${icon('reorder')} <span>Manage Rules</span>
+          </button>
+        </div>
+        <div class="attention-list">
+          ${needsAttention.length ? needsAttention.map(p => {
+            const pct = p.reorder > 0 ? Math.round((p.stock / p.reorder) * 100) : 0;
+            const s = stockStatus(p);
+            return `
+              <div class="attention-item">
+                <div style="flex:1;min-width:200px;">
+                  <div style="font-weight:700;color:var(--ink);">${esc(p.name)}</div>
+                  <div style="font-size:12px;color:var(--ink-faint);font-family:var(--font-mono);">${esc(p.sku)} • ${esc(p.category)}</div>
+                </div>
+                <div class="stock-meter-wrap">
+                  <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-soft);">
+                    <span>Stock: <b>${p.stock} ${esc(p.uom)}</b></span>
+                    <span>Min: ${p.reorder}</span>
+                  </div>
+                  <div class="stock-meter-bar">
+                    <div class="stock-meter-fill ${s}" style="width:${Math.min(100, Math.max(5, pct))}%;"></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  ${stockBadge(p)}
+                  <button class="btn btn-secondary btn-sm" onclick="go('/receipts/new')">${icon('plus')} Reorder</button>
+                  <button class="btn btn-ghost btn-sm" onclick="go('/products/${p.id}')">View</button>
+                </div>
+              </div>
+            `;
+          }).join('') : `
+            <div style="padding:20px;text-align:center;color:var(--success);font-weight:600;font-size:13px;">
+              ${icon('check')} All products are currently adequately stocked above minimum safety thresholds.
+            </div>
+          `}
+        </div>
       </div>
     `;
   }
@@ -3707,3 +3572,55 @@
   renderToasts();
 
 })();
+
+  window.openNewItemModal = function() {
+    openModal(`
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 class="modal-title">+ Add New Item / Operation</h3>
+          <button class="icon-btn" onclick="closeModal()">${icon('x')}</button>
+        </div>
+        <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
+          <p style="font-size:13px;color:var(--ink-soft);margin-bottom:6px;">Select the type of inventory record or stock movement to create:</p>
+          <div class="action-card" onclick="closeModal(); go('/products/new');">
+            <div class="action-card-icon" style="background:var(--primary-light);color:var(--primary);">${icon('box')}</div>
+            <div>
+              <div class="action-card-title">New Product</div>
+              <div class="action-card-desc">Define a new SKU, category, UoM, and initial stock</div>
+            </div>
+          </div>
+          <div class="action-card" onclick="closeModal(); go('/receipts/new');">
+            <div class="action-card-icon" style="background:#ecfdf5;color:#059669;">${icon('receipt')}</div>
+            <div>
+              <div class="action-card-title">New Vendor Receipt (Incoming Stock)</div>
+              <div class="action-card-desc">Record goods delivered by suppliers (increases inventory)</div>
+            </div>
+          </div>
+          <div class="action-card" onclick="closeModal(); go('/deliveries/new');">
+            <div class="action-card-icon" style="background:#eff6ff;color:#2563eb;">${icon('truck')}</div>
+            <div>
+              <div class="action-card-title">New Delivery Order (Outgoing Stock)</div>
+              <div class="action-card-desc">Pick, pack, and validate customer shipments (decreases inventory)</div>
+            </div>
+          </div>
+          <div class="action-card" onclick="closeModal(); go('/transfers/new');">
+            <div class="action-card-icon" style="background:#f5f3ff;color:#7c3aed;">${icon('swap')}</div>
+            <div>
+              <div class="action-card-title">New Internal Transfer</div>
+              <div class="action-card-desc">Relocate stock between warehouses/locations (company total unchanged)</div>
+            </div>
+          </div>
+          <div class="action-card" onclick="closeModal(); go('/adjustments/new');">
+            <div class="action-card-icon" style="background:#fffbeb;color:#d97706;">${icon('sliders')}</div>
+            <div>
+              <div class="action-card-title">New Physical Adjustment</div>
+              <div class="action-card-desc">Reconcile physical cycle counts with recorded stock balances</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+    `);
+  };
