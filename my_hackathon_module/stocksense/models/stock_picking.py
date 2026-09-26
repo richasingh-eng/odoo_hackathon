@@ -97,14 +97,12 @@ class StockPicking(models.Model):
                     _("Please add at least one product before confirming.")
                 )
 
-            # DELIVERY must have a source location
             if picking.operation_type == "delivery":
                 if not picking.source_location_id:
                     raise UserError(
                         _("Please select a source location for the delivery.")
                     )
 
-            # INTERNAL TRANSFER validation
             if picking.operation_type == "internal":
                 if not picking.source_location_id:
                     raise UserError(
@@ -139,7 +137,6 @@ class StockPicking(models.Model):
                         _("Quantity must be greater than 0.")
                     )
 
-            # DELIVERY
             if picking.operation_type == "delivery":
 
                 source = picking.source_location_id
@@ -147,7 +144,6 @@ class StockPicking(models.Model):
                 for line in picking.move_line_ids:
                     product = line.product_id
 
-                    # Global stock validation
                     if line.quantity > product.quantity_on_hand:
                         raise UserError(
                             _(
@@ -161,7 +157,6 @@ class StockPicking(models.Model):
                             )
                         )
 
-                    # Location stock validation
                     source_stock = self.env[
                         "stocksense.location.stock"
                     ].search(
@@ -191,7 +186,6 @@ class StockPicking(models.Model):
                             )
                         )
 
-                # Update global + location stock
                 for line in picking.move_line_ids:
                     product = line.product_id
 
@@ -208,7 +202,6 @@ class StockPicking(models.Model):
                     product.quantity_on_hand -= line.quantity
                     source_stock.quantity -= line.quantity
 
-            # INTERNAL TRANSFER
             elif picking.operation_type == "internal":
 
                 source = picking.source_location_id
@@ -280,7 +273,6 @@ class StockPicking(models.Model):
                             }
                         )
 
-            # RECEIPT
             elif picking.operation_type == "receipt":
 
                 for line in picking.move_line_ids:

@@ -2,10 +2,6 @@
 
 <odoo>
 
-    <!-- =========================
-         CATEGORY VIEWS
-    ========================== -->
-
     <record id="view_stocksense_category_tree" model="ir.ui.view">
         <field name="name">stocksense.category.tree</field>
         <field name="model">stocksense.category</field>
@@ -37,11 +33,6 @@
         <field name="res_model">stocksense.category</field>
         <field name="view_mode">list,form</field>
     </record>
-
-
-    <!-- =========================
-         PRODUCT VIEWS
-    ========================== -->
 
     <record id="view_stocksense_product_tree" model="ir.ui.view">
         <field name="name">stocksense.product.tree</field>
@@ -87,11 +78,6 @@
         <field name="res_model">stocksense.product</field>
         <field name="view_mode">list,form</field>
     </record>
-
-
-    <!-- =========================
-         STOCK OPERATION VIEWS
-    ========================== -->
 
     <record id="view_stocksense_picking_tree" model="ir.ui.view">
         <field name="name">stocksense.stock.picking.tree</field>
@@ -195,11 +181,6 @@
         <field name="view_mode">list,form</field>
     </record>
 
-
-    <!-- =========================
-         LOCATION VIEWS
-    ========================== -->
-
     <record id="view_stocksense_location_tree" model="ir.ui.view">
         <field name="name">stocksense.location.tree</field>
         <field name="model">stocksense.location</field>
@@ -242,11 +223,6 @@
         <field name="view_mode">list,form</field>
     </record>
 
-
-    <!-- =========================
-         LOCATION STOCK VIEWS
-    ========================== -->
-
     <record id="view_stocksense_location_stock_tree" model="ir.ui.view">
         <field name="name">stocksense.location.stock.tree</field>
         <field name="model">stocksense.location.stock</field>
@@ -288,11 +264,6 @@
         <field name="res_model">stocksense.location.stock</field>
         <field name="view_mode">list,form</field>
     </record>
-
-
-    <!-- =========================
-         MAIN MENU
-    ========================== -->
 
     <menuitem id="menu_stocksense_root"
               name="StockSense"

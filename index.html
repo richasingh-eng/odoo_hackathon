@@ -1,0 +1,4559 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <title>StockSense — Modern Inventory Management System (IMS)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="StockSense digitizes inventory operations and replaces manual registers, Excel sheets, and scattered stock tracking with a centralized, real-time, easy-to-use application.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'SF Mono', Consolas, Menlo, Monaco, monospace;
+
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-alt: #f1f5f9;
+  --surface-hover: #f8fafc;
+  --line: #e2e8f0;
+  --line-light: #f1f5f9;
+  --line-strong: #cbd5e1;
+
+  --ink: #0f172a;
+  --ink-soft: #475569;
+  --ink-faint: #64748b;
+  --ink-inverted: #ffffff;
+
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-light: #eef2ff;
+  --primary-border: #c7d2fe;
+
+  --success: #059669;
+  --success-bg: #ecfdf5;
+  --warning: #d97706;
+  --warning-bg: #fffbeb;
+  --danger: #e11d48;
+  --danger-bg: #fff1f2;
+  --info: #2563eb;
+  --info-bg: #eff6ff;
+
+  --sidebar-w: 240px;
+  --sidebar-bg: #0f172a;
+  --sidebar-text: #94a3b8;
+  --sidebar-active: #4f46e5;
+
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] {
+  --bg: #0b0f19;
+  --surface: #111827;
+  --surface-alt: #1f2937;
+  --surface-hover: #232d3f;
+  --line: #2e384d;
+  --line-light: #1e2638;
+  --line-strong: #475569;
+
+  --ink: #f8fafc;
+  --ink-soft: #94a3b8;
+  --ink-faint: #64748b;
+  --ink-inverted: #0f172a;
+
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --primary-light: rgba(99, 102, 241, 0.15);
+  --primary-border: rgba(99, 102, 241, 0.3);
+
+  --sidebar-bg: #080c14;
+  --sidebar-text: #8896ab;
+  --sidebar-active: #6366f1;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  background-color: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+.mono { font-family: var(--font-mono); }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+#app { min-height: 100vh; display: flex; flex-direction: column; }
+.app-layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: var(--sidebar-w);
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 40;
+  transition: transform 0.2s ease;
+}
+
+.sidebar-brand {
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.brand-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, #4f46e5, #3b82f6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.brand-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+.brand-sub {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.sidebar-action-wrap {
+  padding: 12px 14px 6px;
+}
+.btn-sidebar-add {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+  transition: background 0.15s ease;
+}
+.btn-sidebar-add:hover { background: var(--primary-hover); }
+
+.sidebar-menu {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 10px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.menu-group-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  padding: 4px 10px;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--sidebar-text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+.menu-item.active {
+  background: var(--sidebar-active);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.sidebar-footer {
+  padding: 12px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.theme-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #94a3b8;
+}
+.theme-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border-radius: var(--radius-full);
+  padding: 3px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+}
+.user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  background: #3b82f6;
+  color: #fff;
+  font-weight: 700;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-role { font-size: 10.5px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.main-wrapper {
+  flex: 1;
+  margin-left: var(--sidebar-w);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.header {
+  height: 60px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.menu-toggle-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+.breadcrumbs {
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+.breadcrumbs a { color: var(--ink-soft); }
+.breadcrumbs a:hover { color: var(--primary); }
+.breadcrumbs-sep { margin: 0 6px; color: var(--line-strong); }
+.breadcrumbs-curr { font-weight: 600; color: var(--ink); }
+
+.header-center {
+  flex: 1;
+  max-width: 380px;
+  margin: 0 20px;
+}
+.search-pill {
+  display: flex;
+  align-items: center;
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0 12px;
+  height: 36px;
+}
+.search-pill input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  padding-left: 8px;
+}
+.hotkey-tag {
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--ink-faint);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+.header-btn:hover { background: var(--surface-alt); }
+.alert-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--danger);
+}
+
+.page-body {
+  padding: 24px;
+  flex: 1;
+}
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+.page-subtitle {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.page-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-secondary { background: var(--surface); border-color: var(--line); color: var(--ink); }
+.btn-secondary:hover { background: var(--surface-alt); border-color: var(--line-strong); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: #be123c; }
+.btn-sm { height: 30px; padding: 0 10px; font-size: 12px; }
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.kpi-box {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+}
+.kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.kpi-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.kpi-icon-pill {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+.kpi-number {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+.kpi-meta {
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin-top: auto;
+}
+
+.quick-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.quick-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.quick-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-border);
+  box-shadow: var(--shadow-sm);
+}
+.quick-ico {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.quick-title { font-weight: 700; font-size: 13px; color: var(--ink); }
+.quick-desc { font-size: 11.5px; color: var(--ink-soft); }
+
+.filter-box {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.filter-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: flex-end;
+}
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.filter-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.input-control {
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0 10px;
+  font-size: 13px;
+  outline: none;
+}
+.input-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
+}
+
+.table-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+}
+.table-panel-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.table-panel-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.badge-count {
+  font-size: 11px;
+  background: var(--surface-alt);
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  color: var(--ink-faint);
+  font-weight: 600;
+}
+
+.table-responsive { width: 100%; overflow-x: auto; }
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+.table th {
+  background: var(--surface-alt);
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line-light);
+  color: var(--ink);
+  vertical-align: middle;
+}
+.table tr:hover td { background: var(--surface-hover); }
+.table tr:last-child td { border-bottom: none; }
+
+.table-link {
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+}
+.table-link:hover {
+  text-decoration: underline;
+  color: var(--primary-hover);
+}
+
+.table-code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge-draft { background: #f1f5f9; color: #475569; }
+.badge-waiting { background: #fffbeb; color: #b45309; }
+.badge-ready { background: #eff6ff; color: #1d4ed8; }
+.badge-done { background: #ecfdf5; color: #047857; }
+.badge-canceled { background: #fff1f2; color: #be123c; }
+
+.badge-instock { background: #ecfdf5; color: #047857; }
+.badge-low { background: #fffbeb; color: #b45309; }
+.badge-out { background: #fff1f2; color: #be123c; }
+
+.qty-pos { color: var(--success); font-family: var(--font-mono); font-weight: 700; }
+.qty-neg { color: var(--danger); font-family: var(--font-mono); font-weight: 700; }
+
+.pagination {
+  padding: 10px 16px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.pager-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.attention-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+.attention-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.attention-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-alt);
+  margin-bottom: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.meter-bar {
+  width: 120px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--line);
+  overflow: hidden;
+}
+.meter-fill { height: 100%; border-radius: var(--radius-full); }
+.meter-fill.low { background: var(--warning); }
+.meter-fill.out { background: var(--danger); }
+
+.diff-box {
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin: 14px 0;
+}
+.diff-col { text-align: center; }
+.diff-lbl { font-size: 11px; font-weight: 600; color: var(--ink-faint); }
+.diff-val { font-size: 18px; font-weight: 800; font-family: var(--font-mono); }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-content {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-title { font-size: 15px; font-weight: 700; margin: 0; }
+.modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+.modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  background: var(--surface-alt);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.form-row-full { grid-column: span 2; margin-bottom: 12px; }
+
+.toast-wrap {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  background: #0f172a;
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  font-size: 12.5px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 1200px) {
+  .kpi-row { grid-template-columns: repeat(3, 1fr); }
+  .filter-row { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 840px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main-wrapper { margin-left: 0; }
+  .menu-toggle-btn { display: block; }
+  .header-center { display: none; }
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  .quick-row { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .page-body { padding: 14px; }
+  .kpi-row { grid-template-columns: 1fr; }
+  .quick-row { grid-template-columns: 1fr; }
+  .filter-row { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, rgba(248, 250, 252, 1) 90%);
+  padding: 24px 16px;
+}
+[data-theme="dark"] .auth-page {
+  background: radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.12) 0%, rgba(15, 23, 42, 1) 90%);
+}
+.auth-container {
+  width: 100%;
+  max-width: 440px;
+}
+.auth-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.auth-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary) 0%, #312e81 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 22px;
+  box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+}
+.auth-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+.auth-sub {
+  font-size: 13.5px;
+  color: var(--ink-faint);
+}
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
+  box-shadow: var(--shadow-lg);
+}
+.auth-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.auth-card-desc {
+  font-size: 13px;
+  color: var(--ink-faint);
+  margin-bottom: 22px;
+}
+.auth-field {
+  margin-bottom: 16px;
+}
+.auth-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.auth-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.auth-forgot {
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+.auth-forgot:hover { text-decoration: underline; }
+.auth-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--surface-alt);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  font-size: 14px;
+  color: var(--ink);
+  transition: all 0.15s ease;
+}
+.auth-input:focus {
+  outline: none;
+  background: var(--surface);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+.auth-btn-primary {
+  width: 100%;
+  padding: 11px 16px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.25);
+  transition: background 0.15s ease;
+  margin-top: 8px;
+}
+.auth-btn-primary:hover {
+  background: var(--primary-hover);
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+  color: var(--ink-faint);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+.auth-divider::before, .auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--line);
+}
+.auth-divider::before { margin-right: 12px; }
+.auth-divider::after { margin-left: 12px; }
+.auth-quick-login {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.quick-role-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-alt);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--ink);
+  transition: all 0.15s ease;
+}
+.quick-role-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.auth-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--ink-faint);
+}
+.auth-footer a {
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+.auth-footer a:hover { text-decoration: underline; }
+.otp-inputs {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 16px 0;
+}
+.otp-box {
+  width: 44px;
+  height: 48px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  border: 1px solid var(--line-strong);
+  background: var(--surface-alt);
+  border-radius: var(--radius);
+  color: var(--ink);
+}
+.otp-box:focus {
+  border-color: var(--primary);
+  background: var(--surface);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+.otp-info-pill {
+  background: var(--primary-light);
+  border: 1px dashed var(--primary-border);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  color: var(--primary);
+  text-align: center;
+  margin-bottom: 16px;
+}
+.auth-alert-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #ef4444;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+.auth-alert-success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #10b981;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+.auth-masked-email {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--surface-alt);
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 4px;
+}
+.otp-timer-wrap {
+  text-align: center;
+  margin: 14px 0 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.otp-timer-wrap.expired {
+  color: #ef4444;
+}
+.otp-resend-wrap {
+  text-align: center;
+  margin-top: 14px;
+  font-size: 13px;
+}
+.otp-resend-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-size: 13px;
+  text-decoration: underline;
+  transition: opacity 0.2s ease;
+}
+.otp-resend-btn:disabled, .otp-resend-btn[disabled] {
+  color: var(--ink-faint);
+  text-decoration: none;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.password-field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.password-field-wrap .auth-input {
+  padding-right: 42px;
+}
+.password-toggle-btn {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+.password-toggle-btn:hover {
+  color: var(--ink);
+}
+.password-hint {
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  margin-top: 4px;
+}
+.auth-success-box {
+  text-align: center;
+  padding: 24px 16px;
+}
+.auth-success-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 16px auto;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.auth-success-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.auth-success-desc {
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+.ai-assistant-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.ai-assistant-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.5);
+}
+.ai-assistant-panel {
+  position: fixed;
+  bottom: 84px;
+  right: 24px;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  height: 480px;
+  max-height: calc(100vh - 120px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 1000;
+}
+[data-theme="dark"] .ai-assistant-panel {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+.ai-panel-header {
+  padding: 12px 14px;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ai-panel-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ai-panel-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+.ai-panel-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.ai-panel-subtitle {
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.ai-panel-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--ink-faint);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+.ai-panel-close-btn:hover {
+  color: var(--ink);
+}
+.ai-panel-body {
+  flex: 1;
+  padding: 14px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ai-msg {
+  display: flex;
+  gap: 8px;
+  max-width: 88%;
+}
+.ai-msg.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+.ai-msg.assistant {
+  align-self: flex-start;
+}
+.ai-bubble {
+  padding: 9px 12px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  border-radius: 12px;
+  word-break: break-word;
+}
+.ai-msg.user .ai-bubble {
+  background: var(--primary);
+  color: #fff;
+  border-bottom-right-radius: 2px;
+}
+.ai-msg.assistant .ai-bubble {
+  background: var(--surface-alt);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 2px;
+}
+.ai-suggestions-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+.ai-suggestion-chip {
+  padding: 6px 10px;
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--primary);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+.ai-suggestion-chip:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+.ai-panel-footer {
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.ai-input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-alt);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.ai-input:focus {
+  border-color: var(--primary);
+  background: var(--surface);
+}
+.ai-send-btn {
+  padding: 8px 14px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+.ai-send-btn:hover {
+  background: var(--primary-hover);
+}
+.ai-loading-dots {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 4px 6px;
+}
+.ai-loading-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+  animation: aiDotPulse 1.2s infinite ease-in-out both;
+}
+.ai-loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.ai-loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+@keyframes aiDotPulse {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+@media (max-width: 640px) {
+  .ai-assistant-btn {
+    bottom: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+  }
+  .ai-assistant-panel {
+    bottom: 68px;
+    right: 16px;
+    width: calc(100vw - 32px);
+    height: 420px;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+
+(function() {
+  "use strict";
+
+  function getInitialData() {
+    return {
+      warehouses: [
+        {
+          id: 'wh-mum',
+          name: 'Main Logistics Hub (Bhiwandi, Mumbai)',
+          address: 'Plot 42, Mankoli Naka, Bhiwandi, Maharashtra 421302',
+          locations: [
+            { id: 'loc-m1', name: 'Zone A / Rack 01 / Bin 101', zone: 'Zone A', rack: 'Rack 01', bin: 'Bin 101' },
+            { id: 'loc-m2', name: 'Zone A / Rack 02 / Bin 104', zone: 'Zone A', rack: 'Rack 02', bin: 'Bin 104' },
+            { id: 'loc-m3', name: 'Zone B / Rack 01 / Bin 201', zone: 'Zone B', rack: 'Rack 01', bin: 'Bin 201' }
+          ]
+        },
+        {
+          id: 'wh-blr',
+          name: 'Assembly & Staging Floor (Peenya, Bengaluru)',
+          address: 'Phase 2, Peenya Industrial Area, Bengaluru, Karnataka 560058',
+          locations: [
+            { id: 'loc-b1', name: 'Production Staging Line 1', zone: 'Line 1', rack: 'Staging', bin: 'Stage-A' },
+            { id: 'loc-b2', name: 'Sub-Assembly Bay 2', zone: 'Line 2', rack: 'Assembly', bin: 'Bay-B' }
+          ]
+        },
+        {
+          id: 'wh-chn',
+          name: 'Southern Regional Hub (Sriperumbudur, Chennai)',
+          address: 'SIPCOT Industrial Park, Sriperumbudur, Tamil Nadu 602105',
+          locations: [
+            { id: 'loc-c1', name: 'Depot Warehouse / Rack 01 / Bin 01', zone: 'Depot', rack: 'Rack 01', bin: 'Bin 01' },
+            { id: 'loc-c2', name: 'Cold & Moisture Storage Vault', zone: 'Depot', rack: 'Vault 1', bin: 'Sec-02' }
+          ]
+        }
+      ],
+      categories: [
+        { id: 'cat-furn', name: 'Furniture' },
+        { id: 'cat-raw', name: 'Raw Materials' },
+        { id: 'cat-comp', name: 'Components' },
+        { id: 'cat-fg', name: 'Finished Goods' },
+        { id: 'cat-pkg', name: 'Packaging' }
+      ],
+      products: [
+        { id: 'p0', sku: 'ST-001', product_code: 'ST-001', name: 'Ergonomic Office Chair', product_name: 'Ergonomic Office Chair', category: 'Furniture', uom: 'Units', stock: 100, quantity_on_hand: 100, reorder: 25, warehouse: 'wh-mum', location: 'loc-m1', cost: 4200 },
+        { id: 'p1', sku: 'STL-RD-012', product_code: 'STL-RD-012', name: 'High-Tensile Steel Rods (12mm)', product_name: 'High-Tensile Steel Rods (12mm)', category: 'Raw Materials', uom: 'kg', stock: 450, quantity_on_hand: 450, reorder: 150, warehouse: 'wh-mum', location: 'loc-m1', cost: 68 },
+        { id: 'p2', sku: 'STL-SH-002', product_code: 'STL-SH-002', name: 'Cold-Rolled Steel Sheet (2mm)', product_name: 'Cold-Rolled Steel Sheet (2mm)', category: 'Raw Materials', uom: 'sheet', stock: 38, quantity_on_hand: 38, reorder: 50, warehouse: 'wh-mum', location: 'loc-m2', cost: 1250 },
+        { id: 'p3', sku: 'CMP-BLT-M8', product_code: 'CMP-BLT-M8', name: 'Hexagonal High-Grade Bolts M8', product_name: 'Hexagonal High-Grade Bolts M8', category: 'Components', uom: 'pcs', stock: 2800, quantity_on_hand: 2800, reorder: 600, warehouse: 'wh-mum', location: 'loc-m3', cost: 4.5 },
+        { id: 'p4', sku: 'CMP-BRG-608', product_code: 'CMP-BRG-608', name: 'Precision Ball Bearings 608ZZ', product_name: 'Precision Ball Bearings 608ZZ', category: 'Components', uom: 'pcs', stock: 0, quantity_on_hand: 0, reorder: 250, warehouse: 'wh-mum', location: 'loc-m3', cost: 35 },
+        { id: 'p5', sku: 'FG-BRK-100', product_code: 'FG-BRK-100', name: 'Modular Heavy-Duty Steel Bracket', product_name: 'Modular Heavy-Duty Steel Bracket', category: 'Finished Goods', uom: 'pcs', stock: 14, quantity_on_hand: 14, reorder: 20, warehouse: 'wh-blr', location: 'loc-b1', cost: 850 },
+        { id: 'p6', sku: 'PKG-BOX-L', product_code: 'PKG-BOX-L', name: 'Heavy Corrugated Packing Box (L)', product_name: 'Heavy Corrugated Packing Box (L)', category: 'Packaging', uom: 'pcs', stock: 950, quantity_on_hand: 950, reorder: 300, warehouse: 'wh-mum', location: 'loc-m2', cost: 42 },
+        { id: 'p7', sku: 'RAW-ALU-6M', product_code: 'RAW-ALU-6M', name: 'Anodized Aluminium Extrusion 6m', product_name: 'Anodized Aluminium Extrusion 6m', category: 'Raw Materials', uom: 'pcs', stock: 120, quantity_on_hand: 120, reorder: 40, warehouse: 'wh-chn', location: 'loc-c1', cost: 1650 }
+      ],
+      receipts: [
+        { id: 'r0', number: 'IN/0001', reference_no: 'IN/0001', supplier: 'ABC Suppliers', partner_name: 'ABC Suppliers', operation_type: 'receipt', date: '2026-09-26', warehouse: 'wh-mum', status: 'Draft', product_code: 'ST-001', quantity: 20, items: [{ product: 'p0', qty: 20, uom: 'Units' }] },
+        { id: 'r1', number: 'REC-1042', reference_no: 'REC-1042', supplier: 'Tata Steelworks Ltd (Jamshedpur)', partner_name: 'Tata Steelworks Ltd (Jamshedpur)', operation_type: 'receipt', date: '2026-09-22', warehouse: 'wh-mum', status: 'Done', items: [{ product: 'p1', qty: 200, uom: 'kg' }] },
+        { id: 'r2', number: 'REC-1043', reference_no: 'REC-1043', supplier: 'Bharat Fasteners & Hardware (Pune)', partner_name: 'Bharat Fasteners & Hardware (Pune)', operation_type: 'receipt', date: '2026-09-24', warehouse: 'wh-mum', status: 'Ready', items: [{ product: 'p3', qty: 1000, uom: 'pcs' }] },
+        { id: 'r3', number: 'REC-1044', reference_no: 'REC-1044', supplier: 'Kirloskar Industrial Components', partner_name: 'Kirloskar Industrial Components', operation_type: 'receipt', date: '2026-09-25', warehouse: 'wh-chn', status: 'Waiting', items: [{ product: 'p2', qty: 50, uom: 'sheet' }] },
+        { id: 'r4', number: 'REC-1045', reference_no: 'REC-1045', supplier: 'Reliance Polymers & Packaging', partner_name: 'Reliance Polymers & Packaging', operation_type: 'receipt', date: '2026-09-26', warehouse: 'wh-mum', status: 'Draft', items: [{ product: 'p4', qty: 300, uom: 'pcs' }] }
+      ],
+      deliveries: [
+        { id: 'd1', number: 'DEL-2201', customer: 'Larsen & Toubro Construction (Chennai)', date: '2026-09-23', warehouse: 'wh-mum', status: 'Done', stage: 'Validate', items: [{ product: 'p0', qty: 12, uom: 'Units' }] },
+        { id: 'd2', number: 'DEL-2202', customer: 'Infosys Tech Park (Bengaluru)', date: '2026-09-25', warehouse: 'wh-blr', status: 'Ready', stage: 'Pack', items: [{ product: 'p5', qty: 6, uom: 'pcs' }] },
+        { id: 'd3', number: 'DEL-2203', customer: 'Wipro Digital Campus (Hyderabad)', date: '2026-09-26', warehouse: 'wh-chn', status: 'Waiting', stage: 'Pick', items: [{ product: 'p0', qty: 15, uom: 'Units' }] },
+        { id: 'd4', number: 'DEL-2204', customer: 'Godrej Interio Retail (Delhi NCR)', date: '2026-09-26', warehouse: 'wh-mum', status: 'Draft', stage: 'Pick', items: [{ product: 'p6', qty: 150, uom: 'pcs' }] }
+      ],
+      transfers: [
+        { id: 't1', number: 'TRF-330', sourceWh: 'wh-mum', sourceLoc: 'loc-m1', destWh: 'wh-blr', destLoc: 'loc-b1', product: 'p1', qty: 80, date: '2026-09-24', status: 'Done' },
+        { id: 't2', number: 'TRF-331', sourceWh: 'wh-mum', sourceLoc: 'loc-m2', destWh: 'wh-chn', destLoc: 'loc-c1', product: 'p6', qty: 120, date: '2026-09-25', status: 'Ready' },
+        { id: 't3', number: 'TRF-332', sourceWh: 'wh-mum', sourceLoc: 'loc-m1', destWh: 'wh-mum', destLoc: 'loc-m3', product: 'p7', qty: 25, date: '2026-09-26', status: 'Waiting' }
+      ],
+      adjustments: [
+        { id: 'a1', product: 'p2', warehouse: 'wh-mum', location: 'loc-m2', recorded: 41, counted: 38, diff: -3, reason: 'Physical cycle count shrinkage', date: '2026-09-25', user: 'Aarav Sharma' },
+        { id: 'a2', product: 'p1', warehouse: 'wh-mum', location: 'loc-m1', recorded: 445, counted: 450, diff: 5, reason: 'Recount reconciliation after Tata delivery', date: '2026-09-23', user: 'Priya Patel' }
+      ],
+      ledger: [
+        { date: '2026-09-26 10:15', ref: 'REC-1042', product: 'p1', op: 'Receipt', source: 'Tata Steelworks Ltd (Jamshedpur)', destination: 'Main Logistics Hub (Mumbai)', qty: 200, balance: 450, user: 'Aarav Sharma' },
+        { date: '2026-09-25 15:30', ref: 'TRF-330', product: 'p1', op: 'Internal Transfer', source: 'Main Logistics Hub (Mumbai)', destination: 'Assembly Floor (Bengaluru)', qty: -80, balance: 250, user: 'Vikram Malhotra' },
+        { date: '2026-09-25 11:20', ref: 'ADJ-001', product: 'p2', op: 'Adjustment', source: 'Zone A / Rack 02', destination: 'Zone A / Rack 02', qty: -3, balance: 38, user: 'Aarav Sharma' },
+        { date: '2026-09-24 16:45', ref: 'DEL-2201', product: 'p0', op: 'Delivery', source: 'Main Logistics Hub (Mumbai)', destination: 'L&T Construction (Chennai)', qty: -12, balance: 100, user: 'Priya Patel' },
+        { date: '2026-09-24 09:30', ref: 'TRF-331', product: 'p6', op: 'Internal Transfer', source: 'Main Logistics Hub (Mumbai)', destination: 'Southern Hub (Chennai)', qty: -120, balance: 830, user: 'Ananya Iyer' },
+        { date: '2026-09-23 08:50', ref: 'ADJ-002', product: 'p1', op: 'Adjustment', source: 'Zone A / Rack 01', destination: 'Zone A / Rack 01', qty: 5, balance: 445, user: 'Aarav Sharma' }
+      ],
+      nextIds: { receipt: 1046, delivery: 2205, transfer: 333, adjustment: 3 }
+    };
+  }
+
+  const STORAGE_KEY = 'stocksense_ims_v4';
+  let State = loadState();
+
+  function loadState() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return {
+      data: getInitialData(),
+      user: { name: 'Aarav Sharma', email: 'aarav.sharma@stocksense.in', role: 'Inventory Operations Lead' },
+      theme: localStorage.getItem('stocksense_theme') || 'light'
+    };
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(State));
+    } catch(e) {}
+  }
+
+  let currentRoute = location.hash.slice(1) || '/dashboard';
+  let dashFilters = { type: 'All', status: 'All', warehouse: 'All', category: 'All', q: '' };
+  let receiptsFilter = { status: 'All', warehouse: 'All' };
+  let deliveriesFilter = { status: 'All', warehouse: 'All' };
+  let transfersFilter = { status: 'All', warehouse: 'All' };
+  let adjustmentsFilter = { warehouse: 'All' };
+
+  window.setReceiptStatusFilter = function(val) { receiptsFilter.status = val; renderApp(); };
+  window.setReceiptWarehouseFilter = function(val) { receiptsFilter.warehouse = val; renderApp(); };
+  window.setDeliveryStatusFilter = function(val) { deliveriesFilter.status = val; renderApp(); };
+  window.setDeliveryWarehouseFilter = function(val) { deliveriesFilter.warehouse = val; renderApp(); };
+  window.setTransferStatusFilter = function(val) { transfersFilter.status = val; renderApp(); };
+  window.setTransferSourceFilter = function(val) { transfersFilter.warehouse = val; renderApp(); };
+  window.setAdjWarehouseFilter = function(val) { adjustmentsFilter.warehouse = val; renderApp(); };
+  let dashPage = 1;
+  const DASH_PER_PAGE = 8;
+  let activeModal = null;
+
+  document.documentElement.setAttribute('data-theme', State.theme);
+
+  window.toggleTheme = function() {
+    State.theme = State.theme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', State.theme);
+    localStorage.setItem('stocksense_theme', State.theme);
+    saveState();
+    renderApp();
+    showToast('Switched to ' + State.theme + ' theme');
+  };
+
+  window.addEventListener('hashchange', function() {
+    currentRoute = location.hash.slice(1) || '/dashboard';
+    document.getElementById('sidebarNav')?.classList.remove('open');
+    renderApp();
+    window.scrollTo(0, 0);
+  });
+
+  window.go = function(path) {
+    location.hash = '#' + path;
+  };
+
+  window.toggleSidebar = function(open) {
+    const s = document.getElementById('sidebarNav');
+    if (s) s.classList.toggle('open', open);
+  };
+
+  window.addEventListener('keydown', function(e) {
+    if (e.key === '/' && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+      e.preventDefault();
+      const el = document.getElementById('globalSearch') || document.getElementById('dfQ');
+      if (el) { el.focus(); el.select(); }
+    } else if (e.key === 'Escape') {
+      closeModal();
+      document.getElementById('sidebarNav')?.classList.remove('open');
+    }
+  });
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function fmtNum(n) { return Number(n || 0).toLocaleString('en-IN'); }
+  function fmtDate(d) {
+    if (!d) return '—';
+    const dt = new Date(d);
+    return isNaN(dt) ? d : dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  function findProduct(id) { return State.data.products.find(p => p.id === id); }
+  function findWarehouse(id) { return State.data.warehouses.find(w => w.id === id); }
+  function getLocationLabel(whId, locId) {
+    const wh = findWarehouse(whId);
+    if (!wh) return '—';
+    const loc = wh.locations.find(l => l.id === locId);
+    return loc ? loc.name : 'Standard Staging';
+  }
+  function stockStatus(p) {
+    if (p.stock <= 0) return 'out';
+    if (p.stock <= p.reorder) return 'low';
+    return 'in';
+  }
+  function stockBadge(p) {
+    const s = stockStatus(p);
+    const map = { in: ['badge-instock', 'In Stock'], low: ['badge-low', 'Low Stock'], out: ['badge-out', 'Out of Stock'] };
+    return `<span class="badge ${map[s][0]}">${map[s][1]}</span>`;
+  }
+  function statusBadge(s) {
+    const cls = 'badge-' + String(s).toLowerCase();
+    return `<span class="badge ${cls}">${esc(s)}</span>`;
+  }
+  function initials(name) {
+    return (name || 'Aarav Sharma').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  }
+
+  function showToast(msg) {
+    let wrap = document.getElementById('toastWrap');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.id = 'toastWrap';
+      wrap.className = 'toast-wrap';
+      document.body.appendChild(wrap);
+    }
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML = `<span>●</span> <span>${esc(msg)}</span>`;
+    wrap.appendChild(t);
+    setTimeout(() => t.remove(), 3200);
+  }
+
+  window.openModal = function(html) {
+    activeModal = html;
+    let overlay = document.getElementById('modalOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'modalOverlay';
+      overlay.className = 'modal-overlay';
+      overlay.onclick = function(e) { if (e.target === overlay) closeModal(); };
+      document.body.appendChild(overlay);
+    }
+    overlay.innerHTML = html;
+    overlay.style.display = 'flex';
+  };
+
+  window.closeModal = function() {
+    activeModal = null;
+    const overlay = document.getElementById('modalOverlay');
+    if (overlay) overlay.style.display = 'none';
+  };
+
+  window.exportCSV = function(filename, rows) {
+    if (!rows || !rows.length) return showToast('No data available to export');
+    const keys = Object.keys(rows[0]);
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      keys.join(",") + "\n" + 
+      rows.map(r => keys.map(k => '"' + String(r[k] || '').replace(/"/g, '""') + '"').join(",")).join("\n");
+    const encoded = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encoded);
+    link.setAttribute("download", filename + ".csv");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    showToast('Exported ' + filename + '.csv');
+  };
+
+  const NAV_SECTIONS = [
+    { label: null, items: [{ path: '/dashboard', name: 'Dashboard', icon: '📊' }] },
+    { label: 'Products', items: [
+      { path: '/products', name: 'All Products', icon: '📦' },
+      { path: '/categories', name: 'Categories', icon: '🏷️' },
+      { path: '/reorder-rules', name: 'Reordering Rules', icon: '⚙️' }
+    ]},
+    { label: 'Operations', items: [
+      { path: '/receipts', name: 'Receipts', icon: '📥' },
+      { path: '/deliveries', name: 'Delivery Orders', icon: '🚚' },
+      { path: '/transfers', name: 'Internal Transfers', icon: '🔄' },
+      { path: '/adjustments', name: 'Inventory Adjustments', icon: '⚖️' },
+      { path: '/ledger', name: 'Move History', icon: '📜' }
+    ]},
+    { label: 'Warehouse', items: [
+      { path: '/warehouses', name: 'Warehouses & Locations', icon: '🏢' }
+    ]},
+    { label: 'System', items: [
+      { path: '/settings', name: 'Settings', icon: '🛠️' }
+    ]}
+  ];
+
+  function renderSidebar() {
+    const user = State.user;
+    return `
+      <aside class="sidebar" id="sidebarNav">
+        <div class="sidebar-brand">
+          <div class="brand-logo">S</div>
+          <div>
+            <div class="brand-title">StockSense</div>
+            <div class="brand-sub">Inventory Cloud (IMS)</div>
+          </div>
+        </div>
+
+        <div class="sidebar-action-wrap">
+          <button class="btn-sidebar-add" onclick="openNewActionModal()">
+            <span>+</span> <span>Add New Item</span>
+          </button>
+        </div>
+
+        <nav class="sidebar-menu">
+          ${NAV_SECTIONS.map(sec => `
+            <div>
+              ${sec.label ? `<div class="menu-group-title">${sec.label}</div>` : ''}
+              ${sec.items.map(it => {
+                const isActive = currentRoute === it.path || 
+                  (it.path !== '/dashboard' && currentRoute.startsWith(it.path)) ||
+                  (it.path === '/deliveries' && currentRoute.startsWith('/delivery')) ||
+                  (it.path === '/ledger' && (currentRoute.startsWith('/history') || currentRoute.startsWith('/moves'))) ||
+                  (it.path === '/warehouses' && currentRoute.startsWith('/locations'));
+                return `
+                  <div class="menu-item ${isActive ? 'active' : ''}" onclick="go('${it.path}')">
+                    <span>${it.icon}</span>
+                    <span>${esc(it.name)}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `).join('')}
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="theme-row">
+            <span>Theme: <b>${State.theme === 'dark' ? 'Dark' : 'Light'}</b></span>
+            <button class="theme-btn" onclick="toggleTheme()">${State.theme === 'dark' ? '☀️ Light' : '🌙 Dark'}</button>
+          </div>
+          <div class="user-card" onclick="go('/profile')" style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:10px;overflow:hidden;">
+              <div class="user-avatar">${initials(user.name)}</div>
+              <div class="user-info">
+                <div class="user-name">${esc(user.name)}</div>
+                <div class="user-role">${esc(user.role)}</div>
+              </div>
+            </div>
+            <button style="background:none;border:none;cursor:pointer;color:var(--sidebar-muted);font-size:15px;padding:4px;" title="Switch User / Sign Out" onclick="event.stopPropagation(); logoutUser();">🚪</button>
+          </div>
+        </div>
+      </aside>
+    `;
+  }
+
+  function renderHeader() {
+    const lowStockAlerts = State.data.products.filter(p => stockStatus(p) !== 'in');
+    const clean = currentRoute.split('?')[0];
+    let crumb = 'Dashboard';
+    if (clean === '/products') crumb = 'Products / All Products';
+    else if (clean.startsWith('/products/')) crumb = 'Products / Product Detail';
+    else if (clean === '/categories') crumb = 'Products / Categories';
+    else if (clean === '/reorder-rules' || clean === '/reordering-rules') crumb = 'Products / Reordering Rules';
+    else if (clean === '/receipts') crumb = 'Operations / Vendor Receipts';
+    else if (clean === '/deliveries' || clean === '/delivery') crumb = 'Operations / Delivery Orders';
+    else if (clean === '/transfers') crumb = 'Operations / Internal Transfers';
+    else if (clean === '/adjustments') crumb = 'Operations / Inventory Adjustments';
+    else if (clean === '/ledger' || clean === '/history' || clean === '/moves') crumb = 'Operations / Move History Ledger';
+    else if (clean === '/warehouses' || clean === '/locations') crumb = 'Warehouse / Facilities & Locations';
+    else if (clean === '/settings') crumb = 'System / Settings';
+    else if (clean === '/profile') crumb = 'Account / My Profile';
+
+    return `
+      <header class="header">
+        <div class="header-left">
+          <button class="menu-toggle-btn" onclick="toggleSidebar(true)">☰</button>
+          <div class="breadcrumbs">
+            <a onclick="go('/dashboard')">StockSense</a>
+            <span class="breadcrumbs-sep">/</span>
+            <span class="breadcrumbs-curr">${esc(crumb)}</span>
+          </div>
+        </div>
+
+        <div class="header-center">
+          <div class="search-pill">
+            <span>🔍</span>
+            <input id="globalSearch" placeholder="Search product SKU, document #, or location..." onkeydown="if(event.key==='Enter') go('/products?q='+encodeURIComponent(this.value))">
+            <span class="hotkey-tag">/</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button class="header-btn" onclick="go('/reorder-rules')" title="Low Stock Alerts">
+            <span>🔔</span>
+            ${lowStockAlerts.length > 0 ? '<span class="alert-dot"></span>' : ''}
+          </button>
+          <div class="user-avatar" onclick="go('/profile')" style="cursor:pointer;" title="${esc(State.user.name)}">
+            ${initials(State.user.name)}
+          </div>
+        </div>
+      </header>
+    `;
+  }
+
+  function getDashboardFeed() {
+    const feed = [];
+    State.data.receipts.forEach(r => r.items.forEach(it => feed.push({
+      doc: r.number, type: 'Receipt', product: it.product, wh: r.warehouse, loc: null, qty: it.qty, status: r.status, date: r.date, link: '/receipts'
+    })));
+    State.data.deliveries.forEach(d => d.items.forEach(it => feed.push({
+      doc: d.number, type: 'Delivery', product: it.product, wh: d.warehouse, loc: null, qty: -it.qty, status: d.status, date: d.date, link: '/deliveries'
+    })));
+    State.data.transfers.forEach(t => feed.push({
+      doc: t.number, type: 'Internal', product: t.product, wh: t.destWh, loc: t.destLoc, qty: t.qty, status: t.status, date: t.date, link: '/transfers'
+    }));
+    State.data.adjustments.forEach(a => feed.push({
+      doc: 'ADJ-' + a.id.slice(1).padStart(3, '0'), type: 'Adjustment', product: a.product, wh: a.warehouse, loc: a.location, qty: a.diff, status: 'Done', date: a.date, link: '/adjustments'
+    }));
+    feed.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return feed;
+  }
+
+  function filterDashboardFeed(feed) {
+    const f = dashFilters;
+    return feed.filter(r => {
+      if (f.type !== 'All' && r.type !== f.type) return false;
+      if (f.status !== 'All' && r.status !== f.status) return false;
+      if (f.warehouse !== 'All' && r.wh !== f.warehouse) return false;
+      if (f.category !== 'All') {
+        const p = findProduct(r.product);
+        if (!p || p.category !== f.category) return false;
+      }
+      if (f.q) {
+        const p = findProduct(r.product);
+        const hay = (r.doc + ' ' + (p ? p.name + ' ' + p.sku : '')).toLowerCase();
+        if (!hay.includes(f.q.toLowerCase())) return false;
+      }
+      return true;
+    });
+  }
+
+  function pageDashboard() {
+    const prods = State.data.products;
+    const totalUnits = prods.reduce((acc, p) => acc + p.stock, 0);
+    const lowCount = prods.filter(p => stockStatus(p) === 'low').length;
+    const outCount = prods.filter(p => stockStatus(p) === 'out').length;
+    const pendingReceipts = State.data.receipts.filter(r => r.status !== 'Done' && r.status !== 'Canceled').length;
+    const pendingDeliveries = State.data.deliveries.filter(d => d.status !== 'Done' && d.status !== 'Canceled').length;
+    const pendingTransfers = State.data.transfers.filter(t => t.status !== 'Done' && t.status !== 'Canceled').length;
+
+    const allFeed = filterDashboardFeed(getDashboardFeed());
+    const totalPages = Math.ceil(allFeed.length / DASH_PER_PAGE) || 1;
+    if (dashPage > totalPages) dashPage = totalPages;
+    const pagedFeed = allFeed.slice((dashPage - 1) * DASH_PER_PAGE, dashPage * DASH_PER_PAGE);
+
+    const activeFilterCount = ['type', 'status', 'warehouse', 'category'].filter(k => dashFilters[k] !== 'All').length + (dashFilters.q ? 1 : 0);
+    const attentionItems = prods.filter(p => stockStatus(p) !== 'in').slice(0, 5);
+
+    return `
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Inventory Dashboard</h1>
+          <div class="page-subtitle">Centralized real-time overview of warehouse stock, movements, and operational alerts.</div>
+        </div>
+        <div class="page-actions">
+          <div style="font-size:12px;font-weight:600;padding:6px 12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);color:var(--ink-soft);">
+            Operations Date: <b>Today, 26 Sep 2026</b>
+          </div>
+          <button class="btn btn-primary" onclick="openNewActionModal()">
+            <span>+</span> <span>New Operation</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-box">
+          <div class="kpi-top">
+            <span class="kpi-name">Total Stock in Hand</span>
+            <span class="kpi-icon-pill" style="background:var(--info-bg);color:var(--info);">📦</span>
+          </div>
+          <div class="kpi-number">${fmtNum(totalUnits)}</div>
+          <div class="kpi-meta">${prods.length} active SKUs tracked</div>
+        </div>
+
+        <div class="kpi-box">
+          <div class="kpi-top">
+            <span class="kpi-name">Low Stock Items</span>
+            <span class="kpi-icon-pill" style="background:var(--warning-bg);color:var(--warning);">⚠️</span>
+          </div>
+          <div class="kpi-number" style="color:var(--warning);">${lowCount}</div>
+          <div class="kpi-meta">At or below reorder threshold</div>
+        </div>
+
+        <div class="kpi-box">
+          <div class="kpi-top">
+            <span class="kpi-name">Out of Stock Items</span>
+            <span class="kpi-icon-pill" style="background:var(--danger-bg);color:var(--danger);">⛔</span>
+          </div>
+          <div class="kpi-number" style="color:var(--danger);">${outCount}</div>
+          <div class="kpi-meta">Requires urgent vendor purchase</div>
+        </div>
+
+        <div class="kpi-box">
+          <div class="kpi-top">
+            <span class="kpi-name">Pending Receipts</span>
+            <span class="kpi-icon-pill" style="background:var(--primary-light);color:var(--primary);">📥</span>
+          </div>
+          <div class="kpi-number">${pendingReceipts}</div>
+          <div class="kpi-meta">Incoming vendor shipments</div>
+        </div>
+
+        <div class="kpi-box">
+          <div class="kpi-top">
+            <span class="kpi-name">Pending Deliveries</span>
+            <span class="kpi-icon-pill" style="background:var(--info-bg);color:var(--info);">🚚</span>
+          </div>
+          <div class="kpi-number">${pendingDeliveries}</div>
+          <div class="kpi-meta">Customer orders in dispatch</div>
+        </div>
+
+        <div class="kpi-box">
+          <div class="kpi-top">
+            <span class="kpi-name">Internal Transfers</span>
+            <span class="kpi-icon-pill" style="background:#f5f3ff;color:#7c3aed;">🔄</span>
+          </div>
+          <div class="kpi-number">${pendingTransfers}</div>
+          <div class="kpi-meta">Scheduled warehouse moves</div>
+        </div>
+      </div>
+
+      <div style="background:var(--primary-light);border:1px solid var(--primary-border);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <div>
+            <div style="font-weight:700;font-size:14px;color:var(--primary-text);">StockSense End-to-End Inventory Lifecycle</div>
+            <div style="font-size:12px;color:var(--ink-soft);">Demonstrating seamless stock movement across vendor receipt, internal transfer, customer delivery, and audit.</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="runDemoLifecycle()">⚡ Run 1-Click Simulation</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:10px;">
+          <div style="background:var(--surface);padding:10px 12px;border-radius:var(--radius);border:1px solid var(--line);">
+            <div style="font-size:10px;font-weight:700;color:var(--primary);">STEP 1 • VENDOR RECEIPT</div>
+            <div style="font-weight:600;font-size:12px;">+100 kg Steel Rods</div>
+            <div style="font-size:11px;color:var(--ink-faint);">Stock automatically increases.</div>
+          </div>
+          <div style="background:var(--surface);padding:10px 12px;border-radius:var(--radius);border:1px solid var(--line);">
+            <div style="font-size:10px;font-weight:700;color:var(--primary);">STEP 2 • TRANSFER</div>
+            <div style="font-weight:600;font-size:12px;">Move to Assembly Bay</div>
+            <div style="font-size:11px;color:var(--ink-faint);">Relocated; company total same.</div>
+          </div>
+          <div style="background:var(--surface);padding:10px 12px;border-radius:var(--radius);border:1px solid var(--line);">
+            <div style="font-size:10px;font-weight:700;color:var(--primary);">STEP 3 • DELIVERY</div>
+            <div style="font-weight:600;font-size:12px;">Deliver -20 to L&T</div>
+            <div style="font-size:11px;color:var(--ink-faint);">Pick ➔ Pack ➔ Validate (-20).</div>
+          </div>
+          <div style="background:var(--surface);padding:10px 12px;border-radius:var(--radius);border:1px solid var(--line);">
+            <div style="font-size:10px;font-weight:700;color:var(--primary);">STEP 4 • ADJUSTMENT</div>
+            <div style="font-weight:600;font-size:12px;">Audit Damaged (-3)</div>
+            <div style="font-size:11px;color:var(--ink-faint);">Reason logged in Stock Ledger.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quick-row">
+        <div class="quick-card" onclick="openNewReceiptModal()">
+          <div class="quick-ico" style="background:var(--primary-light);color:var(--primary);">📥</div>
+          <div>
+            <div class="quick-title">Receive Stock</div>
+            <div class="quick-desc">Incoming vendor consignment</div>
+          </div>
+        </div>
+        <div class="quick-card" onclick="openNewDeliveryModal()">
+          <div class="quick-ico" style="background:#eff6ff;color:#2563eb;">🚚</div>
+          <div>
+            <div class="quick-title">Create Delivery</div>
+            <div class="quick-desc">Dispatch to customer project</div>
+          </div>
+        </div>
+        <div class="quick-card" onclick="openNewTransferModal()">
+          <div class="quick-ico" style="background:#f5f3ff;color:#7c3aed;">🔄</div>
+          <div>
+            <div class="quick-title">Internal Transfer</div>
+            <div class="quick-desc">Relocate between locations</div>
+          </div>
+        </div>
+        <div class="quick-card" onclick="openNewAdjustmentModal()">
+          <div class="quick-ico" style="background:#fffbeb;color:#d97706;">⚖️</div>
+          <div>
+            <div class="quick-title">Stock Adjustment</div>
+            <div class="quick-desc">Reconcile physical counts</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-box">
+        <div class="filter-row">
+          <div class="filter-field">
+            <label class="filter-label">Search Operations</label>
+            <input type="text" id="dfQ" class="input-control" placeholder="Search by SKU, product, or doc #..." value="${esc(dashFilters.q)}" oninput="setDashFilter('q', this.value)">
+          </div>
+          <div class="filter-field">
+            <label class="filter-label">Document Type</label>
+            <select class="input-control" onchange="setDashFilter('type', this.value)">
+              <option value="All" ${dashFilters.type==='All'?'selected':''}>All Types</option>
+              <option value="Receipt" ${dashFilters.type==='Receipt'?'selected':''}>Receipts (Incoming)</option>
+              <option value="Delivery" ${dashFilters.type==='Delivery'?'selected':''}>Deliveries (Outgoing)</option>
+              <option value="Internal" ${dashFilters.type==='Internal'?'selected':''}>Internal Transfers</option>
+              <option value="Adjustment" ${dashFilters.type==='Adjustment'?'selected':''}>Adjustments</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label class="filter-label">Status</label>
+            <select class="input-control" onchange="setDashFilter('status', this.value)">
+              <option value="All" ${dashFilters.status==='All'?'selected':''}>All Statuses</option>
+              <option value="Draft" ${dashFilters.status==='Draft'?'selected':''}>Draft</option>
+              <option value="Waiting" ${dashFilters.status==='Waiting'?'selected':''}>Waiting</option>
+              <option value="Ready" ${dashFilters.status==='Ready'?'selected':''}>Ready</option>
+              <option value="Done" ${dashFilters.status==='Done'?'selected':''}>Done</option>
+              <option value="Canceled" ${dashFilters.status==='Canceled'?'selected':''}>Canceled</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label class="filter-label">Warehouse</label>
+            <select class="input-control" onchange="setDashFilter('warehouse', this.value)">
+              <option value="All" ${dashFilters.warehouse==='All'?'selected':''}>All Hubs</option>
+              ${State.data.warehouses.map(w => `<option value="${w.id}" ${dashFilters.warehouse===w.id?'selected':''}>${esc(w.name)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="filter-field">
+            <label class="filter-label">Category</label>
+            <select class="input-control" onchange="setDashFilter('category', this.value)">
+              <option value="All" ${dashFilters.category==='All'?'selected':''}>All Categories</option>
+              ${State.data.categories.map(c => `<option value="${esc(c.name)}" ${dashFilters.category===c.name?'selected':''}>${esc(c.name)}</option>`).join('')}
+            </select>
+          </div>
+          ${activeFilterCount > 0 ? `
+            <button class="btn btn-secondary btn-sm" onclick="clearDashFilters()">Clear (${activeFilterCount})</button>
+          ` : '<div></div>'}
+        </div>
+      </div>
+
+      <div class="table-panel">
+        <div class="table-panel-head">
+          <div class="table-panel-title">
+            <span>Recent Operations & Stock Movements</span>
+            <span class="badge-count">${allFeed.length} matching</span>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="go('/ledger')">📜 Full Audit Ledger</button>
+        </div>
+
+        ${pagedFeed.length === 0 ? `
+          <div style="padding:36px;text-align:center;color:var(--ink-soft);">
+            <div style="font-size:24px;margin-bottom:6px;">📦</div>
+            <div style="font-weight:600;">No operations found</div>
+            <div style="font-size:12px;margin-top:2px;">Try adjusting your search or filters.</div>
+          </div>
+        ` : `
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Document #</th>
+                  <th>Type</th>
+                  <th>Product</th>
+                  <th>Warehouse / Location</th>
+                  <th style="text-align:right;">Quantity</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th style="text-align:right;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${pagedFeed.map(r => {
+                  const p = findProduct(r.product);
+                  const wh = findWarehouse(r.wh);
+                  const isNeg = r.qty < 0;
+                  return `
+                    <tr>
+                      <td><a class="table-link" onclick="go('${r.link}')">${esc(r.doc)}</a></td>
+                      <td>${esc(r.type)}</td>
+                      <td>
+                        <div style="font-weight:600;">${esc(p ? p.name : 'Unknown')}</div>
+                        <div style="font-size:11px;color:var(--ink-faint);" class="mono">${esc(p ? p.sku : '')}</div>
+                      </td>
+                      <td>
+                        <div>${esc(wh ? wh.name.split('(')[0] : '—')}</div>
+                        <div style="font-size:11px;color:var(--ink-faint);">${r.loc ? esc(getLocationLabel(r.wh, r.loc)) : 'Main Staging'}</div>
+                      </td>
+                      <td style="text-align:right;">
+                        <span class="${isNeg ? 'qty-neg' : 'qty-pos'}">${isNeg ? '' : '+'}${fmtNum(r.qty)} ${esc(p ? p.uom : '')}</span>
+                      </td>
+                      <td>${statusBadge(r.status)}</td>
+                      <td>${fmtDate(r.date)}</td>
+                      <td style="text-align:right;">
+                        <button class="btn btn-secondary btn-sm" onclick="go('${r.link}')">View</button>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination">
+            <div>Showing ${(dashPage - 1) * DASH_PER_PAGE + 1}–${Math.min(dashPage * DASH_PER_PAGE, allFeed.length)} of ${allFeed.length} operations</div>
+            <div class="pager-controls">
+              <button class="btn btn-secondary btn-sm" onclick="setDashPage(-1)" ${dashPage <= 1 ? 'disabled' : ''}>Previous</button>
+              <span>Page <b>${dashPage}</b> of ${totalPages}</span>
+              <button class="btn btn-secondary btn-sm" onclick="setDashPage(1)" ${dashPage >= totalPages ? 'disabled' : ''}>Next</button>
+            </div>
+          </div>
+        `}
+      </div>
+
+      <div class="attention-panel">
+        <div class="attention-head">
+          <div>
+            <div style="font-size:14px;font-weight:700;">Stock Requiring Immediate Attention</div>
+            <div style="font-size:12px;color:var(--ink-soft);">Items currently at or below safety reorder threshold</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="go('/reorder-rules')">⚙️ Manage Safety Rules</button>
+        </div>
+
+        ${attentionItems.length ? attentionItems.map(p => {
+          const pct = p.reorder > 0 ? Math.round((p.stock / p.reorder) * 100) : 0;
+          const s = stockStatus(p);
+          return `
+            <div class="attention-row">
+              <div style="min-width:200px;">
+                <div style="font-weight:600;">${esc(p.name)}</div>
+                <div style="font-size:11.5px;color:var(--ink-faint);" class="mono">${esc(p.sku)} • ${esc(p.category)}</div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
+                  <span>Stock: <b>${p.stock} ${esc(p.uom)}</b></span>
+                  <span>Safety Min: ${p.reorder}</span>
+                </div>
+                <div class="meter-bar">
+                  <div class="meter-fill ${s}" style="width:${Math.min(100, Math.max(5, pct))}%;"></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                ${stockBadge(p)}
+                <button class="btn btn-secondary btn-sm" onclick="quickReorderProduct('${p.id}')">+ Reorder</button>
+                <button class="btn btn-secondary btn-sm" onclick="go('/products/${p.id}')">Details</button>
+              </div>
+            </div>
+          `;
+        }).join('') : `
+          <div style="padding:16px;text-align:center;color:var(--success);font-weight:600;font-size:12.5px;">
+            ✓ All products are currently adequately stocked above safety thresholds.
+          </div>
+        `}
+      </div>
+    `;
+  }
+
+  window.setDashFilter = function(k, v) {
+    dashFilters[k] = v;
+    dashPage = 1;
+    renderApp();
+  };
+  window.clearDashFilters = function() {
+    dashFilters = { type: 'All', status: 'All', warehouse: 'All', category: 'All', q: '' };
+    dashPage = 1;
+    renderApp();
+  };
+  window.setDashPage = function(delta) {
+    dashPage += delta;
+    renderApp();
+  };
+
+  function pageProducts() {
+    const prods = State.data.products;
+    return `
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Product Catalog</h1>
+          <div class="page-subtitle">Manage SKUs, master catalog, inventory counts, and safety thresholds.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" onclick="exportCSV('StockSense_Products', State.data.products)">Export CSV</button>
+          <button class="btn btn-primary" onclick="openNewProductModal()">+ Add Product</button>
+        </div>
+      </div>
+
+      <div class="table-panel">
+        <div class="table-panel-head">
+          <div class="table-panel-title">
+            <span>All Products</span>
+            <span class="badge-count">${prods.length} items</span>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>SKU / Code</th>
+                <th>Category</th>
+                <th>Unit</th>
+                <th style="text-align:right;">Available Stock</th>
+                <th>Warehouse Hub</th>
+                <th>Reorder Level</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${prods.map(p => {
+                const wh = findWarehouse(p.warehouse);
+                return `
+                  <tr>
+                    <td><a class="table-link" onclick="go('/products/${p.id}')">${esc(p.name)}</a></td>
+                    <td class="mono" style="font-weight:600;">${esc(p.sku)}</td>
+                    <td>${esc(p.category)}</td>
+                    <td>${esc(p.uom)}</td>
+                    <td style="text-align:right;font-weight:700;">${fmtNum(p.stock)} ${esc(p.uom)}</td>
+                    <td>${esc(wh ? wh.name.split('(')[0] : '—')}</td>
+                    <td>${fmtNum(p.reorder)} ${esc(p.uom)}</td>
+                    <td>${stockBadge(p)}</td>
+                    <td style="text-align:right;">
+                      <button class="btn btn-secondary btn-sm" onclick="go('/products/${p.id}')">View</button>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  function pageProductDetail(id) {
+    const p = findProduct(id);
+    if (!p) return '<div class="page-body">Product not found. <a onclick="go(\'/products\')">Return to catalog</a></div>';
+    const wh = findWarehouse(p.warehouse);
+    const history = State.data.ledger.filter(l => l.product === p.id);
+
+    return `
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">${esc(p.name)}</h1>
+          <div class="page-subtitle" class="mono">SKU: ${esc(p.sku)} • Category: ${esc(p.category)}</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" onclick="go('/products')">Back to Catalog</button>
+          <button class="btn btn-primary" onclick="quickReorderProduct('${p.id}')">+ Restock</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;margin-bottom:20px;">
+        <div class="kpi-box">
+          <div class="kpi-name">Available Quantity</div>
+          <div class="kpi-number">${fmtNum(p.stock)} ${esc(p.uom)}</div>
+          <div>${stockBadge(p)}</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-name">Reorder Safety Level</div>
+          <div class="kpi-number">${fmtNum(p.reorder)} ${esc(p.uom)}</div>
+          <div class="kpi-meta">Automatic alert trigger</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-name">Unit Cost</div>
+          <div class="kpi-number">₹${fmtNum(p.cost || 100)}</div>
+          <div class="kpi-meta">Standard purchase price</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-name">Assigned Warehouse</div>
+          <div style="font-weight:700;font-size:14px;margin-top:4px;">${esc(wh ? wh.name : '—')}</div>
+          <div class="kpi-meta">${esc(getLocationLabel(p.warehouse, p.location))}</div>
+        </div>
+      </div>
+
+      <div class="table-panel">
+        <div class="table-panel-head">
+          <div class="table-panel-title">Stock Movement History for ${esc(p.name)}</div>
+        </div>
+        ${history.length ? `
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Reference</th>
+                  <th>Operation</th>
+                  <th>Source</th>
+                  <th>Destination</th>
+                  <th style="text-align:right;">Quantity</th>
+                  <th style="text-align:right;">Balance</th>
+                  <th>Logged By</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${history.map(h => `
+                  <tr>
+                    <td>${h.date}</td>
+                    <td class="mono" style="font-weight:600;">${esc(h.ref)}</td>
+                    <td>${esc(h.op)}</td>
+                    <td>${esc(h.source)}</td>
+                    <td>${esc(h.destination)}</td>
+                    <td style="text-align:right;" class="${h.qty < 0 ? 'qty-neg' : 'qty-pos'}">${h.qty < 0 ? '' : '+'}${h.qty}</td>
+                    <td style="text-align:right;font-weight:700;">${h.balance}</td>
+                    <td>${esc(h.user)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : '<div style="padding:20px;text-align:center;color:var(--ink-soft);">No movement transactions recorded yet for this product.</div>'}
+      </div>
+    `;
+  }
+
+  function pageReceipts() {
+    let filtered = State.data.receipts;
+    if (receiptsFilter.status !== 'All') filtered = filtered.filter(r => r.status === receiptsFilter.status);
+    if (receiptsFilter.warehouse !== 'All') filtered = filtered.filter(r => r.warehouse === receiptsFilter.warehouse);
+
+    return `
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Vendor Receipts (Incoming Stock)</h1>
+          <div class="page-subtitle">Track deliveries from suppliers. Validating a receipt increments warehouse inventory automatically.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="openNewReceiptModal()">+ New Receipt</button>
+        </div>
+      </div>
+
+      <div class="filter-card" style="margin-bottom:16px;">
+        <div class="filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+          <div>
+            <label class="filter-label">Filter by Status</label>
+            <select class="filter-select" onchange="setReceiptStatusFilter(this.value)">
+              <option value="All" ${receiptsFilter.status==='All'?'selected':''}>All Statuses</option>
+              <option value="Draft" ${receiptsFilter.status==='Draft'?'selected':''}>Draft</option>
+              <option value="Waiting" ${receiptsFilter.status==='Waiting'?'selected':''}>Waiting</option>
+              <option value="Ready" ${receiptsFilter.status==='Ready'?'selected':''}>Ready</option>
+              <option value="Done" ${receiptsFilter.status==='Done'?'selected':''}>Done</option>
+            </select>
+          </div>
+          <div>
+            <label class="filter-label">Destination Warehouse Hub</label>
+            <select class="filter-select" onchange="setReceiptWarehouseFilter(this.value)">
+              <option value="All" ${receiptsFilter.warehouse==='All'?'selected':''}>All Hubs</option>
+              ${State.data.warehouses.map(w => `<option value="${w.id}" ${receiptsFilter.warehouse===w.id?'selected':''}>${esc(w.name.split('(')[0])}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-panel">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Receipt #</th>
+                <th>Supplier / Vendor</th>
+                <th>Expected Date</th>
+                <th>Destination Hub</th>
+                <th>Items & Quantities</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filtered.length === 0 ? '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-faint);">No receipts matching selected filters</td></tr>' : filtered.map(r => {
+                const wh = findWarehouse(r.warehouse);
+                const itemsSummary = r.items.map(it => {
+                  const p = findProduct(it.product);
+                  return (p ? p.name : 'Item') + ' (' + it.qty + ' ' + (it.uom || 'units') + ')';
+                }).join(', ');
+                return `
+                  <tr>
+                    <td class="mono" style="font-weight:700;color:var(--primary);">${esc(r.number)}</td>
+                    <td style="font-weight:600;">${esc(r.supplier)}</td>
+                    <td>${fmtDate(r.date)}</td>
+                    <td>${esc(wh ? wh.name.split('(')[0] : '—')}</td>
+                    <td style="font-size:12px;color:var(--ink-soft);">${esc(itemsSummary)}</td>
+                    <td>${statusBadge(r.status)}</td>
+                    <td style="text-align:right;">
+                      ${r.status !== 'Done' && r.status !== 'Canceled' ? `
+                        <button class="btn btn-primary btn-sm" onclick="validateReceipt('${r.id}')">Validate & Receive</button>
+                      ` : `
+                        <span style="font-size:12px;color:var(--success);font-weight:600;">✓ Completed</span>
+                      `}
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  window.validateReceipt = function(id) {
+    const r = State.data.receipts.find(x => x.id === id);
+    if (!r || r.status === 'Done') return;
+
+    r.status = 'Done';
+    r.items.forEach(it => {
+      const p = findProduct(it.product);
+      if (p) {
+        p.stock += Number(it.qty);
+        p.quantity_on_hand = p.stock;
+        State.data.ledger.unshift({
+          date: new Date().toISOString().replace('T', ' ').slice(0, 16),
+          ref: r.number,
+          product: p.id,
+          op: 'Receipt',
+          source: r.supplier,
+          destination: findWarehouse(r.warehouse)?.name || 'Main Warehouse',
+          qty: Number(it.qty),
+          balance: p.stock,
+          user: State.user.name
+        });
+      }
+    });
+
+    saveState();
+    renderApp();
+    showToast('Receipt ' + r.number + ' validated! Stock increased automatically.');
+  };
+
+  function pageDeliveries() {
+    return `
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Delivery Orders (Outgoing Stock)</h1>
+          <div class="page-subtitle">Pick, pack, and ship orders to clients. Validating decreases company inventory automatically.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="openNewDeliveryModal()">+ New Delivery</button>
+        </div>
+      </div>
+
+      <div class="table-panel">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Delivery #</th>
+                <th>Client / Project</th>
+                <th>Scheduled Date</th>
+                <th>Dispatch Hub</th>
+                <th>Stage</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${State.data.deliveries.map(d => `
+                <tr>
+                  <td class="mono" style="font-weight:700;color:var(--primary);">${esc(d.number)}</td>
+                  <td style="font-weight:600;">${esc(d.customer)}</td>
+                  <td>${fmtDate(d.date)}</td>
+                  <td>${esc(findWarehouse(d.warehouse)?.name.split('(')[0] || '—')}</td>
+                  <td><span class="badge" style="background:#e0e7ff;color:#3730a3;">${esc(d.stage || 'Pick')}</span></td>
+                  <td>${statusBadge(d.status)}</td>
+                  <td style="text-align:right;">
+                    ${d.status !== 'Done' && d.status !== 'Canceled' ? `
+                      <button class="btn btn-primary btn-sm" onclick="validateDelivery('${d.id}')">Validate & Dispatch</button>
+                    ` : `
+                      <span style="font-size:12px;color:var(--success);font-weight:600;">✓ Dispatched</span>
+                    `}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  window.validateDelivery = function(id) {
+    const d = State.data.deliveries.find(x => x.id === id);
+    if (!d || d.status === 'Done') return;
+
+    for (const it of d.items) {
+      const p = findProduct(it.product);
+      if (p && p.stock < it.qty) {
+        return showToast('Cannot dispatch: Insufficient stock for ' + p.name + ' (' + p.stock + ' available)');
+      }
+    }
+
+    d.status = 'Done';
+    d.stage = 'Validate';
+    d.items.forEach(it => {
+      const p = findProduct(it.product);
+      if (p) {
+        p.stock -= Number(it.qty);
+        p.quantity_on_hand = p.stock;
+        State.data.ledger.unshift({
+          date: new Date().toISOString().replace('T', ' ').slice(0, 16),
+          ref: d.number,
+          product: p.id,
+          op: 'Delivery',
+          source: findWarehouse(d.warehouse)?.name || 'Main Warehouse',
+          destination: d.customer,
+          qty: -Number(it.qty),
+          balance: p.stock,
+          user: State.user.name
+        });
+      }
+    });
+
+    saveState();
+    renderApp();
+    showToast('Delivery ' + d.number + ' validated! Inventory reduced and dispatched.');
+  };
+
+  function pageTransfers() {
+    let filtered = State.data.transfers;
+    if (transfersFilter.status !== 'All') filtered = filtered.filter(t => t.status === transfersFilter.status);
+    if (transfersFilter.warehouse !== 'All') filtered = filtered.filter(t => t.sourceWh === transfersFilter.warehouse || t.destWh === transfersFilter.warehouse);
+
+    return `
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Internal Transfers</h1>
+          <div class="page-subtitle">Move stock between company warehouses or bays. Preserves total inventory integrity.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="openNewTransferModal()">+ Schedule Transfer</button>
+        </div>
+      </div>
+
+      <div class="filter-card" style="margin-bottom:16px;">
+        <div class="filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+          <div>
+            <label class="filter-label">Filter by Status</label>
+            <select class="filter-select" onchange="setTransferStatusFilter(this.value)">
+              <option value="All" ${transfersFilter.status==='All'?'selected':''}>All Statuses</option>
+              <option value="Draft" ${transfersFilter.status==='Draft'?'selected':''}>Draft</option>
+              <option value="Waiting" ${transfersFilter.status==='Waiting'?'selected':''}>Waiting</option>
+              <option value="Ready" ${transfersFilter.status==='Ready'?'selected':''}>Ready</option>
+              <option value="Done" ${transfersFilter.status==='Done'?'selected':''}>Done</option>
+            </select>
+          </div>
+          <div>
+            <label class="filter-label">Warehouse Facility</label>
+            <select class="filter-select" onchange="setTransferSourceFilter(this.value)">
+              <option value="All" ${transfersFilter.warehouse==='All'?'selected':''}>All Facilities</option>
+              ${State.data.warehouses.map(w => `<option value="${w.id}" ${transfersFilter.warehouse===w.id?'selected':''}>${esc(w.name.split('(')[0])}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-panel">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Transfer #</th>
+                <th>Source Location</th>
+                <th>Destination Location</th>
+                <th>Product</th>
+                <th style="text-align:right;">Quantity</th>
+                <th>Scheduled Date</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filtered.length === 0 ? '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--ink-faint);">No transfers matching selected filters</td></tr>' : filtered.map(t => {
+                const p = findProduct(t.product);
+                return `
+                  <tr>
+                    <td class="mono" style="font-weight:700;color:var(--primary);">${esc(t.number)}</td>
+                    <td>${esc(findWarehouse(t.sourceWh)?.name.split('(')[0] || '—')}</td>
+                    <td>${esc(findWarehouse(t.destWh)?.name.split('(')[0] || '—')}</td>
+                    <td style="font-weight:600;">${esc(p ? p.name : 'Unknown')}</td>
+                    <td style="text-align:right;font-weight:700;">${t.qty} ${esc(p ? p.uom : '')}</td>
+                    <td>${fmtDate(t.date)}</td>
+                    <td>${statusBadge(t.status)}</td>
+                    <td style="text-align:right;">
+                      ${t.status !== 'Done' ? `
+                        <button class="btn btn-primary btn-sm" onclick="completeTransfer('${t.id}')">Execute Move</button>
+                      ` : '<span style="color:var(--success);font-weight:600;font-size:12px;">✓ Relocated</span>'}
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  window.completeTransfer = function(id) {
+    const t = State.data.transfers.find(x => x.id === id);
+    if (!t || t.status === 'Done') return;
+
+    t.status = 'Done';
+    const p = findProduct(t.product);
+    if (p) {
+      State.data.ledger.unshift({
+        date: new Date().toISOString().replace('T', ' ').slice(0, 16),
+        ref: t.number,
+        product: p.id,
+        op: 'Internal Transfer',
+        source: findWarehouse(t.sourceWh)?.name || 'Source Hub',
+        destination: findWarehouse(t.destWh)?.name || 'Destination Hub',
+        qty: t.qty,
+        balance: p.stock,
+        user: State.user.name
+      });
+    }
+
+    saveState();
+    renderApp();
+    showToast('Transfer ' + t.number + ' completed! Location updated in ledger.');
+  };
+
+  function pageAdjustments() {
+    let filtered = State.data.adjustments;
+    if (adjustmentsFilter.warehouse !== 'All') filtered = filtered.filter(a => a.warehouse === adjustmentsFilter.warehouse);
+
+    return `
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Inventory Adjustments</h1>
+          <div class="page-subtitle">Reconcile physical cycle counts against recorded system balances with live discrepancy calculations.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="openNewAdjustmentModal()">+ New Count Adjustment</button>
+        </div>
+      </div>
+
+      <div class="filter-card" style="margin-bottom:16px;">
+        <div class="filter-row" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+          <div>
+            <label class="filter-label">Filter by Warehouse Hub</label>
+            <select class="filter-select" onchange="setAdjWarehouseFilter(this.value)">
+              <option value="All" ${adjustmentsFilter.warehouse==='All'?'selected':''}>All Warehouse Hubs</option>
+              ${State.data.warehouses.map(w => `<option value="${w.id}" ${adjustmentsFilter.warehouse===w.id?'selected':''}>${esc(w.name.split('(')[0])}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-panel">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Adjustment Ref</th>
+                <th>Product</th>
+                <th>Warehouse Hub</th>
+                <th style="text-align:right;">Recorded Qty</th>
+                <th style="text-align:right;">Counted Qty</th>
+                <th style="text-align:right;">Discrepancy</th>
+                <th>Reason</th>
+                <th>Auditor</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filtered.length === 0 ? '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--ink-faint);">No adjustments matching selected filter</td></tr>' : filtered.map(a => {
+                const p = findProduct(a.product);
+                const isNeg = a.diff < 0;
+                return `
+                  <tr>
+                    <td class="mono" style="font-weight:700;">ADJ-${a.id.slice(1).padStart(3, '0')}</td>
+                    <td style="font-weight:600;">${esc(p ? p.name : 'Item')}</td>
+                    <td>${esc(findWarehouse(a.warehouse)?.name.split('(')[0] || '—')}</td>
+                    <td style="text-align:right;">${a.recorded}</td>
+                    <td style="text-align:right;font-weight:700;">${a.counted}</td>
+                    <td style="text-align:right;">
+                      <span class="${isNeg ? 'qty-neg' : 'qty-pos'}">${isNeg ? '' : '+'}${a.diff}</span>
+                    </td>
+                    <td>${esc(a.reason)}</td>
+                    <td>${esc(a.user)}</td>
+                    <td>${fmtDate(a.date)}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  function pageLedger() {
+    return `
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Move History / Stock Ledger</h1>
+          <div class="page-subtitle">Immutable audit trail of all warehouse inventory receipts, dispatches, relocations, and corrections.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" onclick="exportCSV('StockSense_Audit_Ledger', State.data.ledger)">Export CSV</button>
+        </div>
+      </div>
+
+      <div class="table-panel">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Reference</th>
+                <th>Product</th>
+                <th>Operation Type</th>
+                <th>Source</th>
+                <th>Destination</th>
+                <th style="text-align:right;">Quantity Delta</th>
+                <th style="text-align:right;">Balance</th>
+                <th>Logged By</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${State.data.ledger.map(l => {
+                const p = findProduct(l.product);
+                const isNeg = l.qty < 0;
+                return `
+                  <tr>
+                    <td>${l.date}</td>
+                    <td class="mono" style="font-weight:700;color:var(--primary);">${esc(l.ref)}</td>
+                    <td>
+                      <div style="font-weight:600;">${esc(p ? p.name : 'Unknown')}</div>
+                      <div style="font-size:11px;color:var(--ink-faint);" class="mono">${esc(p ? p.sku : '')}</div>
+                    </td>
+                    <td>${esc(l.op)}</td>
+                    <td>${esc(l.source)}</td>
+                    <td>${esc(l.destination)}</td>
+                    <td style="text-align:right;">
+                      <span class="${isNeg ? 'qty-neg' : 'qty-pos'}">${isNeg ? '' : '+'}${l.qty}</span>
+                    </td>
+                    <td style="text-align:right;font-weight:700;">${l.balance}</td>
+                    <td>${esc(l.user)}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  function pageWarehouses() {
+    return `
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Warehouses & Storage Locations</h1>
+          <div class="page-subtitle">Multi-facility warehouse layout and location hierarchy (Warehouse ➔ Zone ➔ Rack ➔ Bin).</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:18px;">
+        ${State.data.warehouses.map(wh => {
+          const prodsInWh = State.data.products.filter(p => p.warehouse === wh.id);
+          const totalStock = prodsInWh.reduce((a, b) => a + b.stock, 0);
+          return `
+            <div class="table-panel">
+              <div class="table-panel-head">
+                <div>
+                  <div style="font-size:15px;font-weight:700;">${esc(wh.name)}</div>
+                  <div style="font-size:12px;color:var(--ink-soft);margin-top:2px;">📍 ${esc(wh.address)}</div>
+                </div>
+                <div style="font-size:12.5px;font-weight:600;color:var(--primary);">
+                  ${prodsInWh.length} SKUs • ${fmtNum(totalStock)} Units on Hand
+                </div>
+              </div>
+              <div style="padding:16px 20px;">
+                <div style="font-size:11.5px;font-weight:700;text-transform:uppercase;color:var(--ink-faint);margin-bottom:10px;">Configured Storage Locations</div>
+                <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;">
+                  ${wh.locations.map(loc => `
+                    <div style="background:var(--surface-alt);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;">
+                      <div style="font-weight:700;font-size:12.5px;">${esc(loc.name)}</div>
+                      <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">Zone: ${esc(loc.zone)} | Rack: ${esc(loc.rack)} | Bin: ${esc(loc.bin)}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  function pageCategories() {
+    return `
+      <div class="page-head">
+        <h1 class="page-title">Product Categories</h1>
+      </div>
+      <div class="table-panel">
+        <table class="table">
+          <thead><tr><th>Category Name</th><th>Product Count</th></tr></thead>
+          <tbody>
+            ${State.data.categories.map(c => `
+              <tr>
+                <td style="font-weight:600;">${esc(c.name)}</td>
+                <td>${State.data.products.filter(p => p.category === c.name).length} products</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function pageReorderRules() {
+    return `
+      <div class="page-head">
+        <h1 class="page-title">Reordering Safety Rules</h1>
+      </div>
+      <div class="table-panel">
+        <table class="table">
+          <thead>
+            <tr><th>Product</th><th>SKU</th><th>Current Stock</th><th>Safety Reorder Level</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            ${State.data.products.map(p => `
+              <tr>
+                <td style="font-weight:600;">${esc(p.name)}</td>
+                <td class="mono">${esc(p.sku)}</td>
+                <td><b>${p.stock}</b> ${esc(p.uom)}</td>
+                <td>${p.reorder} ${esc(p.uom)}</td>
+                <td>${stockBadge(p)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  let otpFlow = {
+    email: '',
+    maskedEmail: '',
+    timerSeconds: 300,
+    timerInterval: null,
+    cooldownSeconds: 30,
+    cooldownInterval: null,
+    attempts: 0,
+    isExpired: false,
+    isLocked: false,
+    resetToken: '',
+    errorMessage: '',
+    isResetComplete: false
+  };
+
+  function maskEmail(email) {
+    if (!email || !email.includes('@')) return email || '';
+    const parts = email.split('@');
+    const u = parts[0];
+    const d = parts[1];
+    if (u.length <= 2) return u[0] + '***@' + d;
+    return u[0] + '***' + u[u.length - 1] + '@' + d;
+  }
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+  }
+
+  function updateOtpTimerUI() {
+    const timerTextEl = document.getElementById('otpTimerText');
+    const timerWrapEl = document.getElementById('otpTimerWrap');
+    const btnVerify = document.getElementById('btnVerifyOtp');
+    const errEl = document.getElementById('otpError');
+    if (otpFlow.isExpired) {
+      if (timerTextEl) timerTextEl.innerText = 'OTP has expired. Please request a new OTP.';
+      if (timerWrapEl) timerWrapEl.classList.add('expired');
+      if (btnVerify) {
+        btnVerify.disabled = true;
+        btnVerify.style.opacity = '0.6';
+        btnVerify.style.cursor = 'not-allowed';
+      }
+      if (errEl) {
+        errEl.innerText = 'OTP has expired. Please request a new OTP.';
+        errEl.style.display = 'flex';
+      }
+    } else {
+      if (timerTextEl) timerTextEl.innerText = 'OTP expires in ' + formatTime(otpFlow.timerSeconds);
+      if (timerWrapEl) timerWrapEl.classList.remove('expired');
+    }
+  }
+
+  function updateCooldownUI() {
+    const btnResend = document.getElementById('btnResendOtp');
+    if (!btnResend) return;
+    if (otpFlow.cooldownSeconds > 0) {
+      btnResend.disabled = true;
+      btnResend.innerText = 'Resend OTP in ' + otpFlow.cooldownSeconds + 's';
+    } else {
+      btnResend.disabled = false;
+      btnResend.innerText = 'Resend OTP';
+    }
+  }
+
+  function startOtpTimer() {
+    if (otpFlow.timerInterval) clearInterval(otpFlow.timerInterval);
+    otpFlow.timerSeconds = 300;
+    otpFlow.isExpired = false;
+    otpFlow.timerInterval = setInterval(() => {
+      otpFlow.timerSeconds--;
+      if (otpFlow.timerSeconds <= 0) {
+        otpFlow.timerSeconds = 0;
+        otpFlow.isExpired = true;
+        clearInterval(otpFlow.timerInterval);
+      }
+      updateOtpTimerUI();
+    }, 1000);
+  }
+
+  function startCooldownTimer() {
+    if (otpFlow.cooldownInterval) clearInterval(otpFlow.cooldownInterval);
+    otpFlow.cooldownSeconds = 30;
+    otpFlow.cooldownInterval = setInterval(() => {
+      otpFlow.cooldownSeconds--;
+      if (otpFlow.cooldownSeconds <= 0) {
+        otpFlow.cooldownSeconds = 0;
+        clearInterval(otpFlow.cooldownInterval);
+      }
+      updateCooldownUI();
+    }, 1000);
+  }
+
+  window.handleOtpInput = function(el, index) {
+    el.value = el.value.replace(/[^0-9]/g, '');
+    if (el.value.length >= 1) {
+      el.value = el.value.slice(0, 1);
+      const next = document.getElementById('otp_' + (index + 1));
+      if (next) next.focus();
+    }
+    const err = document.getElementById('otpError');
+    if (err) err.style.display = 'none';
+  };
+
+  window.handleOtpKeyDown = function(e, index) {
+    if (e.key === 'Backspace' && !e.target.value) {
+      const prev = document.getElementById('otp_' + (index - 1));
+      if (prev) {
+        prev.focus();
+        prev.value = '';
+      }
+    }
+  };
+
+  window.handleOtpPaste = function(e) {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text').trim();
+    if (!pasted) return;
+    const digits = pasted.replace(/[^0-9]/g, '').slice(0, 6);
+    for (let i = 0; i < digits.length; i++) {
+      const box = document.getElementById('otp_' + i);
+      if (box) box.value = digits[i];
+    }
+    const targetIndex = Math.min(digits.length, 5);
+    const targetBox = document.getElementById('otp_' + targetIndex);
+    if (targetBox) targetBox.focus();
+    const err = document.getElementById('otpError');
+    if (err) err.style.display = 'none';
+  };
+
+  window.togglePasswordVisibility = function(inputId, btnEl) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (input.type === 'password') {
+      input.type = 'text';
+      btnEl.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+    } else {
+      input.type = 'password';
+      btnEl.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    }
+  };
+
+  window.handleLogin = async function(e) {
+    if (e) e.preventDefault();
+    const email = document.getElementById('loginEmail')?.value.trim() || 'aarav.sharma@stocksense.in';
+    const pass = document.getElementById('loginPass')?.value || '';
+    const errEl = document.getElementById('loginError');
+    if (errEl) errEl.style.display = 'none';
+
+    try {
+      const resp = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: pass })
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        if (errEl) {
+          errEl.innerText = data.error || 'Invalid email or password.';
+          errEl.style.display = 'flex';
+        } else {
+          showToast(data.error || 'Invalid email or password.');
+        }
+        return;
+      }
+      State.user = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role,
+        isLoggedIn: true
+      };
+      saveState();
+      showToast('Signed in as ' + State.user.name + ' (' + State.user.role + ')');
+      go('/dashboard');
+    } catch (err) {
+      const isStaff = email.toLowerCase().includes('staff') || email.toLowerCase().includes('vikram');
+      State.user = {
+        name: isStaff ? 'Vikram Malhotra' : 'Aarav Sharma',
+        email: email,
+        role: isStaff ? 'Warehouse Staff' : 'Inventory Operations Lead',
+        isLoggedIn: true
+      };
+      saveState();
+      showToast('Signed in as ' + State.user.name + ' (' + State.user.role + ')');
+      go('/dashboard');
+    }
+  };
+
+  window.quickLogin = function(role) {
+    if (role === 'staff') {
+      State.user = {
+        name: 'Vikram Malhotra',
+        email: 'vikram.m@stocksense.in',
+        role: 'Warehouse Staff',
+        isLoggedIn: true
+      };
+    } else {
+      State.user = {
+        name: 'Aarav Sharma',
+        email: 'aarav.sharma@stocksense.in',
+        role: 'Inventory Operations Lead',
+        isLoggedIn: true
+      };
+    }
+    saveState();
+    showToast('Active Persona: ' + State.user.name + ' (' + State.user.role + ')');
+    go('/dashboard');
+  };
+
+  window.handleSignup = async function(e) {
+    if (e) e.preventDefault();
+    const name = document.getElementById('suName')?.value.trim() || 'Warehouse Specialist';
+    const email = document.getElementById('suEmail')?.value.trim() || 'user@stocksense.in';
+    const role = document.getElementById('suRole')?.value || 'Inventory Operations Lead';
+    const pass = document.getElementById('suPass')?.value || 'staff123';
+    try {
+      const resp = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, email: email, role: role, password: pass })
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        State.user = {
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          role: data.user.role,
+          isLoggedIn: true
+        };
+      } else {
+        State.user = { name: name, email: email, role: role, isLoggedIn: true };
+      }
+    } catch (err) {
+      State.user = { name: name, email: email, role: role, isLoggedIn: true };
+    }
+    saveState();
+    showToast('Welcome to StockSense, ' + name + '! Account created.');
+    go('/dashboard');
+  };
+
+  window.handleSendOtp = async function(e) {
+    if (e) e.preventDefault();
+    const errEl = document.getElementById('fpError');
+    const email = (document.getElementById('fpEmail')?.value || '').trim();
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!email || !emailRegex.test(email)) {
+      if (errEl) {
+        errEl.innerText = 'Please enter a valid email address.';
+        errEl.style.display = 'flex';
+      }
+      return;
+    }
+    try {
+      const resp = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        if (errEl) {
+          errEl.innerText = data.error || 'The email address or account details are incorrect.';
+          errEl.style.display = 'flex';
+        }
+        return;
+      }
+      otpFlow.email = email;
+      otpFlow.maskedEmail = maskEmail(email);
+      otpFlow.attempts = 0;
+      otpFlow.isLocked = false;
+      otpFlow.isExpired = false;
+      otpFlow.errorMessage = '';
+      otpFlow.isResetComplete = false;
+      startOtpTimer();
+      startCooldownTimer();
+      go('/verify-otp');
+    } catch (err) {
+      if (errEl) {
+        errEl.innerText = 'The email address or account details are incorrect.';
+        errEl.style.display = 'flex';
+      }
+    }
+  };
+
+  window.handleResendOtp = async function() {
+    if (otpFlow.cooldownSeconds > 0) return;
+    const email = otpFlow.email;
+    const errEl = document.getElementById('otpError');
+    try {
+      const resp = await fetch('/api/auth/resend-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        if (errEl) {
+          errEl.innerText = data.error || 'Failed to resend OTP.';
+          errEl.style.display = 'flex';
+        }
+        return;
+      }
+      otpFlow.attempts = 0;
+      otpFlow.isLocked = false;
+      otpFlow.isExpired = false;
+      otpFlow.errorMessage = '';
+      if (errEl) errEl.style.display = 'none';
+      const btnVerify = document.getElementById('btnVerifyOtp');
+      if (btnVerify) {
+        btnVerify.disabled = false;
+        btnVerify.style.opacity = '1';
+        btnVerify.style.cursor = 'pointer';
+      }
+      for (let i = 0; i < 6; i++) {
+        const box = document.getElementById('otp_' + i);
+        if (box) box.value = '';
+      }
+      startOtpTimer();
+      startCooldownTimer();
+      updateOtpTimerUI();
+      updateCooldownUI();
+      const box0 = document.getElementById('otp_0');
+      if (box0) box0.focus();
+      showToast('New OTP sent successfully to registered email address.');
+    } catch (err) {
+      if (errEl) {
+        errEl.innerText = 'Failed to resend OTP.';
+        errEl.style.display = 'flex';
+      }
+    }
+  };
+
+  window.handleVerifyOtp = async function(e) {
+    if (e) e.preventDefault();
+    const errEl = document.getElementById('otpError');
+    const btnVerify = document.getElementById('btnVerifyOtp');
+    if (otpFlow.isLocked) {
+      if (errEl) {
+        errEl.innerText = 'Too many incorrect attempts. Please request a new OTP.';
+        errEl.style.display = 'flex';
+      }
+      return;
+    }
+    if (otpFlow.isExpired || otpFlow.timerSeconds <= 0) {
+      if (errEl) {
+        errEl.innerText = 'OTP has expired. Please request a new OTP.';
+        errEl.style.display = 'flex';
+      }
+      return;
+    }
+    let otp = '';
+    for (let i = 0; i < 6; i++) {
+      const box = document.getElementById('otp_' + i);
+      otp += (box ? box.value.trim() : '');
+    }
+    if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+      if (errEl) {
+        errEl.innerText = 'Incorrect OTP. Please check the code and try again.';
+        errEl.style.display = 'flex';
+      }
+      return;
+    }
+    try {
+      const resp = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: otpFlow.email, otp: otp })
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        otpFlow.attempts++;
+        if (data.error && data.error.includes('Too many incorrect attempts')) {
+          otpFlow.isLocked = true;
+          if (btnVerify) {
+            btnVerify.disabled = true;
+            btnVerify.style.opacity = '0.6';
+            btnVerify.style.cursor = 'not-allowed';
+          }
+          if (errEl) {
+            errEl.innerText = 'Too many incorrect attempts. Please request a new OTP.';
+            errEl.style.display = 'flex';
+          }
+        } else if (data.error && data.error.includes('expired')) {
+          otpFlow.isExpired = true;
+          if (btnVerify) {
+            btnVerify.disabled = true;
+            btnVerify.style.opacity = '0.6';
+            btnVerify.style.cursor = 'not-allowed';
+          }
+          if (errEl) {
+            errEl.innerText = 'OTP has expired. Please request a new OTP.';
+            errEl.style.display = 'flex';
+          }
+        } else {
+          if (errEl) {
+            errEl.innerText = data.error || 'Incorrect OTP. Please check the code and try again.';
+            errEl.style.display = 'flex';
+          }
+        }
+        return;
+      }
+      if (otpFlow.timerInterval) clearInterval(otpFlow.timerInterval);
+      if (otpFlow.cooldownInterval) clearInterval(otpFlow.cooldownInterval);
+      otpFlow.resetToken = data.reset_token;
+      otpFlow.errorMessage = '';
+      otpFlow.isResetComplete = false;
+      go('/create-password');
+    } catch (err) {
+      if (errEl) {
+        errEl.innerText = 'Incorrect OTP. Please check the code and try again.';
+        errEl.style.display = 'flex';
+      }
+    }
+  };
+
+  window.handleResetPassword = async function(e) {
+    if (e) e.preventDefault();
+    const errEl = document.getElementById('npError');
+    const password = (document.getElementById('npPass')?.value || '');
+    const confirmPassword = (document.getElementById('npConfirmPass')?.value || '');
+
+    if (password.length < 8) {
+      if (errEl) {
+        errEl.innerText = 'Password must contain at least 8 characters.';
+        errEl.style.display = 'flex';
+      }
+      return;
+    }
+    if (password !== confirmPassword) {
+      if (errEl) {
+        errEl.innerText = 'Passwords do not match.';
+        errEl.style.display = 'flex';
+      }
+      return;
+    }
+    try {
+      const resp = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: otpFlow.email,
+          reset_token: otpFlow.resetToken,
+          password: password,
+          confirm_password: confirmPassword
+        })
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        if (errEl) {
+          errEl.innerText = data.error || 'Failed to reset password. Please try again.';
+          errEl.style.display = 'flex';
+        }
+        return;
+      }
+      otpFlow.isResetComplete = true;
+      renderApp();
+    } catch (err) {
+      if (errEl) {
+        errEl.innerText = 'Failed to reset password. Please try again.';
+        errEl.style.display = 'flex';
+      }
+    }
+  };
+
+  window.logoutUser = function() {
+    State.user.isLoggedIn = false;
+    saveState();
+    showToast('Signed out of StockSense');
+    go('/login');
+  };
+
+  function pageLogin() {
+    return `
+      <div class="auth-page">
+        <div class="auth-container">
+          <div class="auth-brand">
+            <div class="auth-logo">S</div>
+            <div class="auth-title">StockSense Cloud IMS</div>
+            <div class="auth-sub">Enterprise Inventory Operations Platform</div>
+          </div>
+
+          <div class="auth-card">
+            <div class="auth-card-title">Sign In to StockSense</div>
+            <div class="auth-card-desc">Enter workplace credentials to access warehouse operations.</div>
+
+            <div id="loginError" class="auth-alert-error" style="display:none;"></div>
+
+            <form onsubmit="handleLogin(event)">
+              <div class="auth-field">
+                <label class="auth-label">Work Email</label>
+                <input type="email" id="loginEmail" class="auth-input" placeholder="e.g. aarav.sharma@stocksense.in" value="${esc(State.user?.email || 'aarav.sharma@stocksense.in')}" required>
+              </div>
+
+              <div class="auth-field">
+                <div class="auth-label-row">
+                  <label class="auth-label">Password</label>
+                  <a class="auth-forgot" onclick="go('/forgot-password')">Forgot Password?</a>
+                </div>
+                <div class="password-field-wrap">
+                  <input type="password" id="loginPass" class="auth-input" placeholder="••••••••" value="admin123" required>
+                  <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('loginPass', this)" title="Toggle password">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" class="auth-btn-primary">Sign In to Dashboard →</button>
+            </form>
+
+            <div class="auth-divider">Or quick test with demo personas</div>
+
+            <div class="auth-quick-login">
+              <div class="quick-role-btn" onclick="quickLogin('manager')">
+                <div>
+                  <strong>Aarav Sharma</strong>
+                  <div style="font-size:11px;color:var(--ink-faint);">Inventory Operations Lead (Manager)</div>
+                </div>
+                <span>⚡ 1-Click</span>
+              </div>
+              <div class="quick-role-btn" onclick="quickLogin('staff')">
+                <div>
+                  <strong>Vikram Malhotra</strong>
+                  <div style="font-size:11px;color:var(--ink-faint);">Warehouse Logistics & Picking Staff</div>
+                </div>
+                <span>⚡ 1-Click</span>
+              </div>
+            </div>
+
+            <div class="auth-footer">
+              Don't have an account? <a onclick="go('/signup')">Create new account</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function pageSignup() {
+    return `
+      <div class="auth-page">
+        <div class="auth-container">
+          <div class="auth-brand">
+            <div class="auth-logo">S</div>
+            <div class="auth-title">StockSense Cloud IMS</div>
+            <div class="auth-sub">Enterprise Inventory Operations Platform</div>
+          </div>
+
+          <div class="auth-card">
+            <div class="auth-card-title">Create StockSense Account</div>
+            <div class="auth-card-desc">Join your logistics team to manage warehouse inventory.</div>
+
+            <form onsubmit="handleSignup(event)">
+              <div class="auth-field">
+                <label class="auth-label">Full Name *</label>
+                <input type="text" id="suName" class="auth-input" placeholder="e.g. Ananya Iyer" required>
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label">Workplace Email *</label>
+                <input type="email" id="suEmail" class="auth-input" placeholder="name@company.in" required>
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label">Organizational Role *</label>
+                <select id="suRole" class="auth-input">
+                  <option value="Inventory Operations Lead">Inventory Operations Lead (Manager)</option>
+                  <option value="Warehouse Staff">Warehouse Logistics & Picking Staff</option>
+                  <option value="Procurement Specialist">Procurement & Receipts Specialist</option>
+                </select>
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label">Password *</label>
+                <div class="password-field-wrap">
+                  <input type="password" id="suPass" class="auth-input" placeholder="Create secure password" required minlength="8" value="staff123">
+                  <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('suPass', this)" title="Toggle password">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" class="auth-btn-primary">Create Account & Enter IMS →</button>
+            </form>
+
+            <div class="auth-footer">
+              Already have an account? <a onclick="go('/login')">Sign In</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function pageForgotPassword() {
+    return `
+      <div class="auth-page">
+        <div class="auth-container">
+          <div class="auth-brand">
+            <div class="auth-logo">S</div>
+            <div class="auth-title">StockSense Cloud IMS</div>
+            <div class="auth-sub">Enterprise Inventory Operations Platform</div>
+          </div>
+
+          <div class="auth-card">
+            <div class="auth-card-title">Reset your password</div>
+            <div class="auth-card-desc">Enter the email address associated with your StockSense account.</div>
+
+            <div id="fpError" class="auth-alert-error" style="display:none;"></div>
+
+            <form onsubmit="handleSendOtp(event)">
+              <div class="auth-field">
+                <label class="auth-label">Email Address</label>
+                <input type="email" id="fpEmail" class="auth-input" placeholder="e.g. aarav.sharma@stocksense.in" value="${esc(otpFlow.email || State.user?.email || 'aarav.sharma@stocksense.in')}" required>
+              </div>
+
+              <button type="submit" id="btnSendOtp" class="auth-btn-primary">Send OTP</button>
+            </form>
+
+            <div class="auth-footer">
+              Remember your password? <a onclick="go('/login')">Back to Sign In</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function pageVerifyOtp() {
+    return `
+      <div class="auth-page">
+        <div class="auth-container">
+          <div class="auth-brand">
+            <div class="auth-logo">S</div>
+            <div class="auth-title">StockSense Cloud IMS</div>
+            <div class="auth-sub">Enterprise Inventory Operations Platform</div>
+          </div>
+
+          <div class="auth-card">
+            <div class="auth-card-title">Verify OTP</div>
+            <div class="auth-card-desc">Enter the 6-digit OTP sent to your email.</div>
+
+            <div style="text-align:center;margin-bottom:14px;">
+              <span class="auth-masked-email">${esc(otpFlow.maskedEmail || maskEmail(otpFlow.email || 'aarav.sharma@stocksense.in'))}</span>
+            </div>
+
+            <div id="otpError" class="auth-alert-error" style="${otpFlow.errorMessage ? 'display:flex;' : 'display:none;'}">${esc(otpFlow.errorMessage || '')}</div>
+
+            <form onsubmit="handleVerifyOtp(event)">
+              <div class="otp-inputs" onpaste="handleOtpPaste(event)">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-box otp-single-box" id="otp_0" oninput="handleOtpInput(this, 0)" onkeydown="handleOtpKeyDown(event, 0)" autofocus autocomplete="off">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-box otp-single-box" id="otp_1" oninput="handleOtpInput(this, 1)" onkeydown="handleOtpKeyDown(event, 1)" autocomplete="off">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-box otp-single-box" id="otp_2" oninput="handleOtpInput(this, 2)" onkeydown="handleOtpKeyDown(event, 2)" autocomplete="off">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-box otp-single-box" id="otp_3" oninput="handleOtpInput(this, 3)" onkeydown="handleOtpKeyDown(event, 3)" autocomplete="off">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-box otp-single-box" id="otp_4" oninput="handleOtpInput(this, 4)" onkeydown="handleOtpKeyDown(event, 4)" autocomplete="off">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-box otp-single-box" id="otp_5" oninput="handleOtpInput(this, 5)" onkeydown="handleOtpKeyDown(event, 5)" autocomplete="off">
+              </div>
+
+              <div id="otpTimerWrap" class="otp-timer-wrap ${otpFlow.isExpired ? 'expired' : ''}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span id="otpTimerText">${otpFlow.isExpired ? 'OTP has expired. Please request a new OTP.' : ('OTP expires in ' + formatTime(otpFlow.timerSeconds))}</span>
+              </div>
+
+              <button type="submit" id="btnVerifyOtp" class="auth-btn-primary" ${otpFlow.isLocked || otpFlow.isExpired ? 'disabled style="opacity:0.6;cursor:not-allowed;"' : ''}>Verify OTP</button>
+
+              <div class="otp-resend-wrap">
+                <button type="button" id="btnResendOtp" class="otp-resend-btn" onclick="handleResendOtp()" ${otpFlow.cooldownSeconds > 0 ? 'disabled' : ''}>
+                  ${otpFlow.cooldownSeconds > 0 ? ('Resend OTP in ' + otpFlow.cooldownSeconds + 's') : 'Resend OTP'}
+                </button>
+              </div>
+            </form>
+
+            <div class="auth-footer">
+              <a onclick="go('/login')">Back to Sign In</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function pageCreatePassword() {
+    if (otpFlow.isResetComplete) {
+      return `
+        <div class="auth-page">
+          <div class="auth-container">
+            <div class="auth-brand">
+              <div class="auth-logo">S</div>
+              <div class="auth-title">StockSense Cloud IMS</div>
+              <div class="auth-sub">Enterprise Inventory Operations Platform</div>
+            </div>
+
+            <div class="auth-card">
+              <div class="auth-success-box">
+                <div class="auth-success-icon">✓</div>
+                <div class="auth-success-title">Password reset successfully.</div>
+                <div class="auth-success-desc">Your credentials have been securely updated. You can now sign in with your new password.</div>
+                <button class="auth-btn-primary" onclick="go('/login')">Back to Login</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="auth-page">
+        <div class="auth-container">
+          <div class="auth-brand">
+            <div class="auth-logo">S</div>
+            <div class="auth-title">StockSense Cloud IMS</div>
+            <div class="auth-sub">Enterprise Inventory Operations Platform</div>
+          </div>
+
+          <div class="auth-card">
+            <div class="auth-card-title">Create New Password</div>
+            <div class="auth-card-desc">Your new password must be different from previous passwords.</div>
+
+            <div id="npError" class="auth-alert-error" style="display:none;"></div>
+
+            <form onsubmit="handleResetPassword(event)">
+              <div class="auth-field">
+                <label class="auth-label">New Password</label>
+                <div class="password-field-wrap">
+                  <input type="password" id="npPass" class="auth-input" placeholder="At least 8 characters" required minlength="8" autocomplete="new-password">
+                  <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('npPass', this)" title="Toggle password">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
+                <div class="password-hint">Password must contain at least 8 characters.</div>
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label">Confirm New Password</label>
+                <div class="password-field-wrap">
+                  <input type="password" id="npConfirmPass" class="auth-input" placeholder="Re-enter new password" required minlength="8" autocomplete="new-password">
+                  <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('npConfirmPass', this)" title="Toggle password">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" id="btnResetPassword" class="auth-btn-primary">Reset Password</button>
+            </form>
+
+            <div class="auth-footer">
+              <a onclick="go('/login')">Back to Sign In</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+
+  function pageProfile() {
+    return `
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">User Profile & Access Control</h1>
+          <p class="page-sub">Manage active persona, security credentials, and role permissions.</p>
+        </div>
+      </div>
+      <div class="table-panel" style="padding:28px;max-width:560px;">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+          <div class="user-avatar" style="width:52px;height:52px;font-size:20px;">${initials(State.user.name)}</div>
+          <div>
+            <div style="font-weight:700;font-size:18px;">${esc(State.user.name)}</div>
+            <div style="color:var(--primary);font-weight:600;font-size:13px;">${esc(State.user.role)}</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:13px;">
+          <div style="background:var(--surface-alt);padding:10px 14px;border-radius:var(--radius);">
+            <div style="color:var(--ink-faint);font-size:11px;text-transform:uppercase;">Email</div>
+            <div style="font-weight:600;margin-top:2px;">${esc(State.user.email)}</div>
+          </div>
+          <div style="background:var(--surface-alt);padding:10px 14px;border-radius:var(--radius);">
+            <div style="color:var(--ink-faint);font-size:11px;text-transform:uppercase;">Organization</div>
+            <div style="font-weight:600;margin-top:2px;">StockSense India Logistics</div>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+          <div style="font-weight:700;font-size:13px;margin-bottom:8px;">Switch Demo Persona</div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-secondary" style="flex:1;" onclick="quickLogin('manager')">Manager Persona</button>
+            <button class="btn btn-secondary" style="flex:1;" onclick="quickLogin('staff')">Staff Persona</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+          <button class="btn btn-secondary" onclick="go('/forgot-password')">Reset Password via OTP</button>
+          <button class="btn btn-danger" onclick="logoutUser()">Sign Out</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function pageSettings() {
+    return `
+      <div class="page-head"><h1 class="page-title">System Settings</h1></div>
+      <div class="table-panel" style="padding:24px;max-width:600px;">
+        <h3 style="margin-top:0;">StockSense IMS Configuration</h3>
+        <p style="color:var(--ink-soft);font-size:13px;margin-bottom:16px;">Manage system currency, notification thresholds, and offline storage persistence.</p>
+        <div style="margin-bottom:14px;"><strong>Local Storage Key:</strong> <code class="mono">${STORAGE_KEY}</code></div>
+        <button class="btn btn-danger" onclick="resetStateToDefaults()">Reset to Clean Default Seed Data</button>
+      </div>
+    `;
+  }
+
+  window.resetStateToDefaults = function() {
+    localStorage.removeItem(STORAGE_KEY);
+    State = {
+      data: getInitialData(),
+      user: { name: 'Aarav Sharma', email: 'aarav.sharma@stocksense.in', role: 'Inventory Operations Lead' },
+      theme: 'light'
+    };
+    saveState();
+    location.reload();
+  };
+
+  window.runDemoLifecycle = function() {
+    const p1 = State.data.products.find(p => p.sku === 'STL-RD-012');
+    if (!p1) return;
+    p1.stock += 100;
+    p1.quantity_on_hand = p1.stock;
+    State.data.ledger.unshift({
+      date: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      ref: 'REC-SIM-1',
+      product: p1.id,
+      op: 'Receipt',
+      source: 'Tata Steelworks Ltd (Vendor)',
+      destination: 'Main Logistics Hub (Mumbai)',
+      qty: 100,
+      balance: p1.stock,
+      user: State.user.name
+    });
+
+    State.data.ledger.unshift({
+      date: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      ref: 'TRF-SIM-2',
+      product: p1.id,
+      op: 'Internal Transfer',
+      source: 'Main Logistics Hub (Mumbai)',
+      destination: 'Assembly Floor (Bengaluru)',
+      qty: 40,
+      balance: p1.stock,
+      user: State.user.name
+    });
+
+    p1.stock -= 20;
+    p1.quantity_on_hand = p1.stock;
+    State.data.ledger.unshift({
+      date: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      ref: 'DEL-SIM-3',
+      product: p1.id,
+      op: 'Delivery',
+      source: 'Assembly Floor (Bengaluru)',
+      destination: 'Larsen & Toubro Project Site',
+      qty: -20,
+      balance: p1.stock,
+      user: State.user.name
+    });
+
+    p1.stock -= 3;
+    p1.quantity_on_hand = p1.stock;
+    State.data.adjustments.unshift({
+      id: 'a' + (++State.data.nextIds.adjustment),
+      product: p1.id,
+      warehouse: 'wh-mum',
+      location: 'loc-m1',
+      recorded: p1.stock + 3,
+      counted: p1.stock,
+      diff: -3,
+      reason: 'Physical audit: 3 kg damaged during transit written off',
+      date: new Date().toISOString().slice(0, 10),
+      user: State.user.name
+    });
+    State.data.ledger.unshift({
+      date: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      ref: 'ADJ-SIM-4',
+      product: p1.id,
+      op: 'Adjustment',
+      source: 'Zone A / Rack 01',
+      destination: 'Zone A / Rack 01',
+      qty: -3,
+      balance: p1.stock,
+      user: State.user.name
+    });
+
+    saveState();
+    renderApp();
+    showToast('Executed full 4-step lifecycle simulation! All records posted to Stock Ledger.');
+  };
+
+  window.openNewActionModal = function() {
+    openModal(`
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">+ Add New Item or Stock Operation</h3>
+          <button class="header-btn" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body" style="display:flex;flex-direction:column;gap:10px;">
+          <div class="quick-card" onclick="closeModal(); openNewProductModal();">
+            <div class="quick-ico" style="background:var(--primary-light);color:var(--primary);">📦</div>
+            <div>
+              <div class="quick-title">Define New Product SKU</div>
+              <div class="quick-desc">Add a master item, category, UoM, and initial stock</div>
+            </div>
+          </div>
+          <div class="quick-card" onclick="closeModal(); openNewReceiptModal();">
+            <div class="quick-ico" style="background:#ecfdf5;color:#059669;">📥</div>
+            <div>
+              <div class="quick-title">New Vendor Receipt (Incoming Goods)</div>
+              <div class="quick-desc">Receive supplier shipment into warehouse stock</div>
+            </div>
+          </div>
+          <div class="quick-card" onclick="closeModal(); openNewDeliveryModal();">
+            <div class="quick-ico" style="background:#eff6ff;color:#2563eb;">🚚</div>
+            <div>
+              <div class="quick-title">New Customer Delivery (Outgoing Goods)</div>
+              <div class="quick-desc">Pick, pack, and ship orders to client project</div>
+            </div>
+          </div>
+          <div class="quick-card" onclick="closeModal(); openNewTransferModal();">
+            <div class="quick-ico" style="background:#f5f3ff;color:#7c3aed;">🔄</div>
+            <div>
+              <div class="quick-title">New Internal Relocation Transfer</div>
+              <div class="quick-desc">Move inventory between hubs or bays (company total same)</div>
+            </div>
+          </div>
+          <div class="quick-card" onclick="closeModal(); openNewAdjustmentModal();">
+            <div class="quick-ico" style="background:#fffbeb;color:#d97706;">⚖️</div>
+            <div>
+              <div class="quick-title">New Physical Count Adjustment</div>
+              <div class="quick-desc">Reconcile physical stock counts with live difference math</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `);
+  };
+
+  window.openNewProductModal = function() {
+    openModal(`
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">+ Add New Product SKU</h3>
+          <button class="header-btn" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <div>
+              <label class="filter-label">Product Name *</label>
+              <input type="text" id="npName" class="input-control" placeholder="e.g. Ergonomic Office Desk">
+            </div>
+            <div>
+              <label class="filter-label">SKU / Code *</label>
+              <input type="text" id="npSku" class="input-control mono" placeholder="e.g. FG-DSK-01">
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label class="filter-label">Category</label>
+              <select id="npCategory" class="input-control">
+                ${State.data.categories.map(c => `<option>${esc(c.name)}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="filter-label">Unit of Measure (UoM)</label>
+              <input type="text" id="npUom" class="input-control" value="Units">
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label class="filter-label">Initial Stock</label>
+              <input type="number" id="npStock" class="input-control" value="0">
+            </div>
+            <div>
+              <label class="filter-label">Reorder Safety Level</label>
+              <input type="number" id="npReorder" class="input-control" value="20">
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label class="filter-label">Warehouse Hub</label>
+              <select id="npWarehouse" class="input-control">
+                ${State.data.warehouses.map(w => `<option value="${w.id}">${esc(w.name)}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="filter-label">Rack Location (Odoo model rack_location)</label>
+              <input type="text" id="npRack" class="input-control" placeholder="e.g. Zone A / Rack 01 / Bin 101" value="Zone A / Rack 01 / Bin 101">
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label class="filter-label">Unit Cost (₹)</label>
+              <input type="number" id="npCost" class="input-control" value="500">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="submitNewProduct()">Create Product</button>
+        </div>
+      </div>
+    `);
+  };
+
+  window.submitNewProduct = function() {
+    const name = document.getElementById('npName').value.trim();
+    const sku = document.getElementById('npSku').value.trim();
+    if (!name || !sku) return showToast('Please enter Product Name and SKU');
+
+    const newProd = {
+      id: 'p' + State.data.products.length,
+      sku: sku,
+      product_code: sku,
+      name: name,
+      product_name: name,
+      category: document.getElementById('npCategory').value,
+      uom: document.getElementById('npUom').value || 'Units',
+      stock: parseInt(document.getElementById('npStock').value, 10) || 0,
+      quantity_on_hand: parseInt(document.getElementById('npStock').value, 10) || 0,
+      reorder: parseInt(document.getElementById('npReorder').value, 10) || 20,
+      warehouse: document.getElementById('npWarehouse').value,
+      location: 'loc-m1',
+      cost: parseInt(document.getElementById('npCost').value, 10) || 100
+    };
+
+    State.data.products.push(newProd);
+    saveState();
+    closeModal();
+    renderApp();
+    showToast('Product ' + sku + ' added to catalog.');
+  };
+
+  window.quickReorderProduct = function(prodId) {
+    const p = findProduct(prodId);
+    if (!p) return;
+    openNewReceiptModal(p.id);
+  };
+
+  window.openNewReceiptModal = function(prefillProdId) {
+    openModal(`
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">+ Create Inbound Vendor Receipt</h3>
+          <button class="header-btn" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <div>
+              <label class="filter-label">Supplier / Vendor Name *</label>
+              <input type="text" id="nrSupplier" class="input-control" placeholder="e.g. Tata Steelworks Ltd" value="Tata Steelworks Ltd (Jamshedpur)">
+            </div>
+            <div>
+              <label class="filter-label">Receipt Date</label>
+              <input type="date" id="nrDate" class="input-control" value="${new Date().toISOString().slice(0, 10)}">
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label class="filter-label">Destination Warehouse Hub</label>
+              <select id="nrWarehouse" class="input-control">
+                ${State.data.warehouses.map(w => `<option value="${w.id}">${esc(w.name)}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="filter-label">Product to Receive</label>
+              <select id="nrProduct" class="input-control">
+                ${State.data.products.map(p => `<option value="${p.id}" ${p.id===prefillProdId?'selected':''}>${esc(p.name)} (${p.sku})</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label class="filter-label">Quantity Received *</label>
+              <input type="number" id="nrQty" class="input-control" value="50">
+            </div>
+            <div>
+              <label class="filter-label">Initial Status</label>
+              <select id="nrStatus" class="input-control">
+                <option value="Draft">Draft</option>
+                <option value="Waiting">Waiting</option>
+                <option value="Ready">Ready</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="submitNewReceipt()">Create Receipt</button>
+        </div>
+      </div>
+    `);
+  };
+
+  window.submitNewReceipt = function() {
+    const supplier = document.getElementById('nrSupplier').value.trim();
+    const qty = parseInt(document.getElementById('nrQty').value, 10);
+    if (!supplier || !qty || qty <= 0) return showToast('Please enter valid supplier and quantity');
+
+    const nextNum = 'REC-' + (++State.data.nextIds.receipt);
+    const prodId = document.getElementById('nrProduct').value;
+    const p = findProduct(prodId);
+
+    const rec = {
+      id: 'r' + State.data.receipts.length,
+      number: nextNum,
+      reference_no: nextNum,
+      supplier: supplier,
+      partner_name: supplier,
+      operation_type: 'receipt',
+      date: document.getElementById('nrDate').value || new Date().toISOString().slice(0, 10),
+      warehouse: document.getElementById('nrWarehouse').value,
+      status: document.getElementById('nrStatus').value || 'Draft',
+      items: [{ product: prodId, qty: qty, uom: p ? p.uom : 'Units' }]
+    };
+
+    State.data.receipts.unshift(rec);
+    saveState();
+    closeModal();
+    renderApp();
+    showToast('Receipt ' + nextNum + ' created.');
+  };
+
+  window.openNewDeliveryModal = function() {
+    openModal(`
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">+ Create Outbound Delivery Order</h3>
+          <button class="header-btn" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <div>
+              <label class="filter-label">Client / Destination Project *</label>
+              <input type="text" id="ndCustomer" class="input-control" placeholder="e.g. Infosys Campus" value="Larsen & Toubro Project Site (Chennai)">
+            </div>
+            <div>
+              <label class="filter-label">Scheduled Dispatch Date</label>
+              <input type="date" id="ndDate" class="input-control" value="${new Date().toISOString().slice(0, 10)}">
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label class="filter-label">Dispatch Warehouse Hub</label>
+              <select id="ndWarehouse" class="input-control">
+                ${State.data.warehouses.map(w => `<option value="${w.id}">${esc(w.name)}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="filter-label">Product to Deliver</label>
+              <select id="ndProduct" class="input-control">
+                ${State.data.products.map(p => `<option value="${p.id}">${esc(p.name)} (${p.stock} available)</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label class="filter-label">Quantity to Dispatch *</label>
+              <input type="number" id="ndQty" class="input-control" value="10">
+            </div>
+            <div>
+              <label class="filter-label">Initial Stage</label>
+              <select id="ndStage" class="input-control">
+                <option value="Pick">Pick</option>
+                <option value="Pack">Pack</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="submitNewDelivery()">Create Delivery</button>
+        </div>
+      </div>
+    `);
+  };
+
+  window.submitNewDelivery = function() {
+    const customer = document.getElementById('ndCustomer').value.trim();
+    const qty = parseInt(document.getElementById('ndQty').value, 10);
+    if (!customer || !qty || qty <= 0) return showToast('Please enter customer and quantity');
+
+    const nextNum = 'DEL-' + (++State.data.nextIds.delivery);
+    const prodId = document.getElementById('ndProduct').value;
+    const p = findProduct(prodId);
+
+    const del = {
+      id: 'd' + State.data.deliveries.length,
+      number: nextNum,
+      customer: customer,
+      date: document.getElementById('ndDate').value || new Date().toISOString().slice(0, 10),
+      warehouse: document.getElementById('ndWarehouse').value,
+      status: 'Ready',
+      stage: document.getElementById('ndStage').value || 'Pick',
+      items: [{ product: prodId, qty: qty, uom: p ? p.uom : 'Units' }]
+    };
+
+    State.data.deliveries.unshift(del);
+    saveState();
+    closeModal();
+    renderApp();
+    showToast('Delivery order ' + nextNum + ' created.');
+  };
+
+  window.openNewTransferModal = function() {
+    openModal(`
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">+ Schedule Internal Transfer</h3>
+          <button class="header-btn" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <div>
+              <label class="filter-label">Source Warehouse</label>
+              <select id="ntSrcWh" class="input-control">
+                ${State.data.warehouses.map(w => `<option value="${w.id}">${esc(w.name)}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="filter-label">Destination Warehouse</label>
+              <select id="ntDestWh" class="input-control">
+                ${State.data.warehouses.map((w, i) => `<option value="${w.id}" ${i===1?'selected':''}>${esc(w.name)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label class="filter-label">Product</label>
+              <select id="ntProduct" class="input-control">
+                ${State.data.products.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="filter-label">Transfer Quantity</label>
+              <input type="number" id="ntQty" class="input-control" value="25">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="submitNewTransfer()">Schedule Transfer</button>
+        </div>
+      </div>
+    `);
+  };
+
+  window.submitNewTransfer = function() {
+    const qty = parseInt(document.getElementById('ntQty').value, 10);
+    if (!qty || qty <= 0) return showToast('Please enter a valid quantity');
+
+    const nextNum = 'TRF-' + (++State.data.nextIds.transfer);
+    const trf = {
+      id: 't' + State.data.transfers.length,
+      number: nextNum,
+      sourceWh: document.getElementById('ntSrcWh').value,
+      sourceLoc: 'loc-m1',
+      destWh: document.getElementById('ntDestWh').value,
+      destLoc: 'loc-b1',
+      product: document.getElementById('ntProduct').value,
+      qty: qty,
+      date: new Date().toISOString().slice(0, 10),
+      status: 'Ready'
+    };
+
+    State.data.transfers.unshift(trf);
+    saveState();
+    closeModal();
+    renderApp();
+    showToast('Internal transfer ' + nextNum + ' scheduled.');
+  };
+
+  window.openNewAdjustmentModal = function() {
+    const p1 = State.data.products[0];
+    openModal(`
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">⚖️ Physical Count Stock Adjustment</h3>
+          <button class="header-btn" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <div>
+              <label class="filter-label">Product to Reconcile</label>
+              <select id="naProduct" class="input-control" onchange="updateAdjustmentMath()">
+                ${State.data.products.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="filter-label">Warehouse Location</label>
+              <select id="naWarehouse" class="input-control">
+                ${State.data.warehouses.map(w => `<option value="${w.id}">${esc(w.name)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label class="filter-label">Recorded System Stock</label>
+              <input type="number" id="naRecorded" class="input-control" value="${p1.stock}" readonly style="background:var(--surface-alt);">
+            </div>
+            <div>
+              <label class="filter-label">Physical Counted Quantity *</label>
+              <input type="number" id="naCounted" class="input-control" value="${p1.stock}" oninput="updateAdjustmentMath()">
+            </div>
+          </div>
+
+          <div class="diff-box">
+            <div class="diff-col">
+              <div class="diff-lbl">Recorded</div>
+              <div class="diff-val" id="naRecVal">${p1.stock}</div>
+            </div>
+            <div style="font-size:20px;color:var(--ink-faint);">➔</div>
+            <div class="diff-col">
+              <div class="diff-lbl">Counted</div>
+              <div class="diff-val" id="naCntVal">${p1.stock}</div>
+            </div>
+            <div style="font-size:20px;color:var(--ink-faint);">=</div>
+            <div class="diff-col">
+              <div class="diff-lbl">Difference</div>
+              <div class="diff-val" id="naDiffVal" style="color:var(--ink);">0</div>
+            </div>
+          </div>
+
+          <div class="form-row-full">
+            <label class="filter-label">Reason for Discrepancy *</label>
+            <input type="text" id="naReason" class="input-control" placeholder="e.g. Physical audit variance / In-transit damage" value="Routine cycle count reconciliation">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="submitAdjustment()">Commit Adjustment</button>
+        </div>
+      </div>
+    `);
+  };
+
+  window.updateAdjustmentMath = function() {
+    const prodId = document.getElementById('naProduct').value;
+    const p = findProduct(prodId);
+    if (!p) return;
+
+    const recordedInput = document.getElementById('naRecorded');
+    const countedInput = document.getElementById('naCounted');
+    recordedInput.value = p.stock;
+
+    const recorded = p.stock;
+    const counted = parseInt(countedInput.value, 10) || 0;
+    const diff = counted - recorded;
+
+    document.getElementById('naRecVal').textContent = recorded;
+    document.getElementById('naCntVal').textContent = counted;
+    const diffEl = document.getElementById('naDiffVal');
+    diffEl.textContent = (diff > 0 ? '+' : '') + diff;
+    if (diff === 0) diffEl.style.color = 'var(--ink)';
+    else if (diff > 0) diffEl.style.color = 'var(--success)';
+    else diffEl.style.color = 'var(--danger)';
+  };
+
+  window.submitAdjustment = function() {
+    const prodId = document.getElementById('naProduct').value;
+    const p = findProduct(prodId);
+    const counted = parseInt(document.getElementById('naCounted').value, 10);
+    const reason = document.getElementById('naReason').value.trim();
+
+    if (isNaN(counted)) return showToast('Please enter a valid physical count');
+    if (!reason) return showToast('Mandatory reason required for adjustments');
+
+    const recorded = p.stock;
+    const diff = counted - recorded;
+    p.stock = counted;
+    p.quantity_on_hand = counted;
+
+    const adjId = 'a' + (++State.data.nextIds.adjustment);
+    State.data.adjustments.unshift({
+      id: adjId,
+      product: p.id,
+      warehouse: document.getElementById('naWarehouse').value,
+      location: 'loc-m1',
+      recorded: recorded,
+      counted: counted,
+      diff: diff,
+      reason: reason,
+      date: new Date().toISOString().slice(0, 10),
+      user: State.user.name
+    });
+
+    State.data.ledger.unshift({
+      date: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      ref: 'ADJ-' + adjId.slice(1).padStart(3, '0'),
+      product: p.id,
+      op: 'Adjustment',
+      source: 'Physical Count Reconciliation',
+      destination: 'Main Hub',
+      qty: diff,
+      balance: p.stock,
+      user: State.user.name
+    });
+
+    saveState();
+    closeModal();
+    renderApp();
+    showToast('Adjustment committed! Stock updated to ' + counted + ' ' + p.uom);
+  };
+
+  let chatbotState = {
+    isOpen: typeof window !== 'undefined' && window.location && window.location.hash && (window.location.hash.includes('assistant=open') || window.location.hash.includes('assistant=demo')),
+    messages: typeof window !== 'undefined' && window.location && window.location.hash && window.location.hash.includes('assistant=demo') ? [
+      { sender: 'user', text: 'Which products are low in stock?' },
+      { sender: 'assistant', text: 'There are currently **3** products below their reorder level:\n• **Cold-Rolled Steel Sheet (2mm)** (STL-SH-002): **38 sheet** available (Reorder: 50 sheet)\n• **Precision Ball Bearings 608ZZ** (CMP-BRG-608): **0 pcs** available (Reorder: 250 pcs)\n• **Modular Heavy-Duty Steel Bracket** (FG-BRK-100): **14 pcs** available (Reorder: 20 pcs)' }
+    ] : [],
+    isLoading: false
+  };
+  window.chatbotState = chatbotState;
+
+  function formatAiText(txt) {
+    let s = esc(txt || '');
+    s = s.replace(new RegExp('\\*\\*(.*?)\\*\\*', 'g'), '<strong>$1</strong>');
+    s = s.replace(/\n/g, '<br>');
+    return s;
+  }
+
+  window.generateInventoryResponse = function(query) {
+    const q = (query || '').trim().toLowerCase();
+    const products = State.data.products || [];
+    const warehouses = State.data.warehouses || [];
+    const receipts = State.data.receipts || [];
+    const deliveries = State.data.deliveries || [];
+    const transfers = State.data.transfers || [];
+    const adjustments = State.data.adjustments || [];
+    const ledger = State.data.ledger || [];
+
+    if (q.includes('password') || q.includes('otp') || q.includes('token') || q.includes('secret') || q.includes('credential')) {
+      return 'For security and privacy reasons, I do not access or expose passwords, OTPs, or authentication credentials.';
+    }
+
+    if (q.includes('delete') || q.includes('remove product') || q.includes('transfer now') || q.includes('deliver now') || q.includes('modify stock')) {
+      return 'I am a read-only inventory assistant and cannot directly modify or execute stock transactions. Please use the operations forms in the dashboard to perform transfers, receipts, or adjustments.';
+    }
+
+    if (q.includes('low in stock') || q.includes('low stock') || q.includes('below reorder') || q.includes('reorder level') || q.includes('reorder threshold') || q.includes('reorder alert')) {
+      const lowItems = products.filter(p => Number(p.stock) <= Number(p.reorder));
+      if (lowItems.length === 0) {
+        return 'All products currently maintain inventory levels above their minimum reorder thresholds.';
+      }
+      const listStr = lowItems.map(p => `• **${p.name}** (${p.sku}): **${p.stock} ${p.uom}** available (Reorder: ${p.reorder} ${p.uom})`).join('\n');
+      return `There are currently **${lowItems.length}** products below their reorder level:\n${listStr}`;
+    }
+
+    if (q.includes('out of stock') || q.includes('zero stock') || q.includes('depleted') || q.includes('no stock')) {
+      const oos = products.filter(p => Number(p.stock) === 0);
+      if (oos.length === 0) {
+        return 'All products currently have positive on-hand inventory. No items are completely out of stock.';
+      }
+      const oosList = oos.map(p => `• **${p.name}** (${p.sku})`).join('\n');
+      return `There are currently **${oos.length}** out-of-stock product(s):\n${oosList}`;
+    }
+
+    if (q.includes('pending deliver') || q.includes('outgoing shipment') || (q.includes('deliver') && (q.includes('pending') || q.includes('show') || q.includes('order')))) {
+      const pending = deliveries.filter(d => (d.status || '').toLowerCase() !== 'done' && (d.status || '').toLowerCase() !== 'delivered');
+      if (pending.length === 0) {
+        return 'There are currently no pending delivery orders. All outbound shipments have been dispatched.';
+      }
+      const listStr = pending.map(d => `• **${(d.number || d.id).toUpperCase()}**: ${d.customer} (${d.items ? d.items.length : 1} item(s), Status: ${d.status})`).join('\n');
+      return `There are currently **${pending.length}** pending delivery orders:\n${listStr}`;
+    }
+
+    if (q.includes('pending receipt') || q.includes('incoming shipment') || (q.includes('receipt') && (q.includes('pending') || q.includes('show')))) {
+      const pending = receipts.filter(r => (r.status || '').toLowerCase() !== 'done' && (r.status || '').toLowerCase() !== 'received');
+      if (pending.length === 0) {
+        return 'There are currently no pending receipts. All incoming shipments have been received and verified.';
+      }
+      const listStr = pending.map(r => `• **${(r.number || r.id).toUpperCase()}**: ${r.supplier} (${r.items ? r.items.length : 1} item(s), Status: ${r.status})`).join('\n');
+      return `There are currently **${pending.length}** pending receipts:\n${listStr}`;
+    }
+
+    if (q.includes('where is my stock located') || q.includes('where is stock located') || q.includes('warehouse location') || q.includes('where is my stock') || q.includes('where are my products') || q.includes('warehouses')) {
+      if (warehouses.length === 0) {
+        return 'I don\'t have enough inventory data to answer that.';
+      }
+      const whList = warehouses.map(w => {
+        const locNames = (w.locations || []).map(l => l.name || l.zone).slice(0, 3).join(', ');
+        return `• **${w.name}**${locNames ? ' (' + locNames + ')' : ''}`;
+      }).join('\n');
+      return `Inventory is stored across **${warehouses.length}** warehouse locations:\n${whList}`;
+    }
+
+    if (q.includes('how much stock') || q.includes('total stock') || q.includes('stock do we have') || q.includes('inventory summary') || q.includes('overall stock')) {
+      const totalQty = products.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
+      const lowCount = products.filter(p => Number(p.stock) <= Number(p.reorder)).length;
+      return `StockSense currently tracks **${products.length}** products with a total on-hand quantity of **${totalQty.toLocaleString()}** units across all warehouses (${lowCount} below reorder level).`;
+    }
+
+    function stemWord(w) {
+      return w.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/s$/, '').replace(/es$/, '');
+    }
+    const qStems = q.split(/\s+/).map(stemWord).filter(w => w.length >= 3);
+
+    for (const p of products) {
+      const skuLower = (p.sku || '').toLowerCase();
+      const pNameLower = (p.name || '').toLowerCase();
+      const pStems = pNameLower.split(/\s+/).map(stemWord).filter(w => w.length >= 3);
+      const matches = pStems.filter(ps => qStems.includes(ps));
+
+      const isSkuMatch = skuLower && q.includes(skuLower);
+      const isNameMatch = q.includes(pNameLower);
+
+      if (isSkuMatch || isNameMatch || matches.length >= 2 || (pStems.length === 1 && matches.length === 1)) {
+        const wh = warehouses.find(w => w.id === p.warehouse);
+        const whName = wh ? wh.name : 'Main Logistics Hub';
+        const loc = wh && wh.locations ? wh.locations.find(l => l.id === p.location) : null;
+        const locName = loc ? loc.name : (p.location || 'Zone A');
+        return `**${p.name}** (${p.sku}) currently has **${p.stock} ${p.uom}** available.\n• Storage: ${whName} (${locName})\n• Reorder Level: ${p.reorder} ${p.uom} (${Number(p.stock) <= Number(p.reorder) ? '⚠️ Below Threshold' : '✅ Optimal'})`;
+      }
+    }
+
+    if (q.includes('transfer') || q.includes('internal move')) {
+      if (transfers.length === 0) {
+        return 'There are currently no internal transfers recorded.';
+      }
+      const tList = transfers.slice(0, 3).map(t => `• **${t.id.toUpperCase()}**: ${t.source} ➔ ${t.destination} (Status: ${t.status})`).join('\n');
+      return `There are **${transfers.length}** internal transfers recorded:\n${tList}`;
+    }
+
+    if (q.includes('movement') || q.includes('ledger') || q.includes('recent move') || q.includes('history')) {
+      if (ledger.length === 0) {
+        return 'No stock movements have been recorded yet.';
+      }
+      const moves = ledger.slice(0, 3).map(m => `• **${m.ref}**: ${m.op} of ${m.qty > 0 ? '+' : ''}${m.qty} (${m.source} ➔ ${m.destination}) on ${m.date}`).join('\n');
+      return `Here are the latest stock movements from the ledger:\n${moves}`;
+    }
+
+    if (q.includes('adjustment') || q.includes('cycle count') || q.includes('audit')) {
+      return `StockSense has recorded **${adjustments.length}** physical count adjustments in the inventory log.`;
+    }
+
+    if (q === 'hi' || q === 'hello' || q === 'hey' || q.startsWith('hi ') || q.startsWith('hello ') || q === 'help') {
+      return 'Hi! How can I assist you with your inventory operations today? You can ask about stock quantities, low-stock alerts, pending receipts, pending deliveries, or storage locations.';
+    }
+
+    return 'I don\'t have enough inventory data to answer that.';
+  }
+
+  window.toggleChatbot = function() {
+    chatbotState.isOpen = !chatbotState.isOpen;
+    const panel = document.getElementById('aiAssistantPanel');
+    if (panel) {
+      panel.style.display = chatbotState.isOpen ? 'flex' : 'none';
+      if (chatbotState.isOpen) {
+        setTimeout(() => {
+          const input = document.getElementById('aiInput');
+          if (input) input.focus();
+          scrollAiMessages();
+        }, 50);
+      }
+    }
+  };
+
+  window.askAiQuestion = function(text) {
+    processAiMessage(text);
+  };
+
+  window.handleSendAiMessage = function(e) {
+    if (e) e.preventDefault();
+    const input = document.getElementById('aiInput');
+    const text = (input?.value || '').trim();
+    if (!text || chatbotState.isLoading) return;
+    input.value = '';
+    processAiMessage(text);
+  };
+
+  function scrollAiMessages() {
+    const body = document.getElementById('aiPanelBody');
+    if (body) {
+      body.scrollTop = body.scrollHeight;
+    }
+  }
+
+  async function processAiMessage(userText) {
+    if (!userText || chatbotState.isLoading) return;
+    chatbotState.isLoading = true;
+    chatbotState.messages.push({ sender: 'user', text: userText });
+    updateAiChatBody();
+
+    const bodyEl = document.getElementById('aiPanelBody');
+    if (bodyEl) {
+      const typingEl = document.createElement('div');
+      typingEl.id = 'aiTypingIndicator';
+      typingEl.className = 'ai-msg assistant';
+      typingEl.innerHTML = '<div class="ai-bubble"><div class="ai-loading-dots"><span></span><span></span><span></span></div></div>';
+      bodyEl.appendChild(typingEl);
+      scrollAiMessages();
+    }
+
+    try {
+      fetch('/api/assistant/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userText })
+      }).catch(() => {});
+
+      await new Promise(resolve => setTimeout(resolve, 350));
+      const reply = window.generateInventoryResponse(userText);
+      chatbotState.messages.push({ sender: 'assistant', text: reply });
+    } catch (err) {
+      chatbotState.messages.push({ sender: 'assistant', text: "Sorry, I couldn't process that request. Please try again." });
+    } finally {
+      chatbotState.isLoading = false;
+      const typingEl = document.getElementById('aiTypingIndicator');
+      if (typingEl) typingEl.remove();
+      updateAiChatBody();
+    }
+  }
+
+  function updateAiChatBody() {
+    const bodyEl = document.getElementById('aiPanelBody');
+    if (!bodyEl) return;
+    let html = `
+      <div class="ai-msg assistant">
+        <div class="ai-bubble">
+          Hi! How can I assist you?
+          <div class="ai-suggestions-box">
+            <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('How much stock do we have?')">How much stock do we have?</button>
+            <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Which products are low in stock?')">Which products are low in stock?</button>
+            <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Show pending deliveries')">Show pending deliveries</button>
+            <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Show pending receipts')">Show pending receipts</button>
+            <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Where is my stock located?')">Where is my stock located?</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    chatbotState.messages.forEach(m => {
+      if (m.sender === 'user') {
+        html += `<div class="ai-msg user"><div class="ai-bubble">${esc(m.text)}</div></div>`;
+      } else {
+        html += `<div class="ai-msg assistant"><div class="ai-bubble">${formatAiText(m.text)}</div></div>`;
+      }
+    });
+
+    bodyEl.innerHTML = html;
+    scrollAiMessages();
+  }
+
+  function renderChatbot() {
+    return `
+      <button id="aiAssistantBtn" class="ai-assistant-btn" onclick="toggleChatbot()" title="StockSense Inventory Assistant" aria-label="Open Inventory Assistant">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path>
+          <rect x="4" y="7" width="16" height="12" rx="4"></rect>
+          <line x1="9" y1="12" x2="9.01" y2="12"></line>
+          <line x1="15" y1="12" x2="15.01" y2="12"></line>
+          <line x1="9" y1="16" x2="15" y2="16"></line>
+        </svg>
+      </button>
+
+      <div id="aiAssistantPanel" class="ai-assistant-panel" style="${chatbotState.isOpen ? 'display:flex;' : 'display:none;'}" aria-live="polite">
+        <div class="ai-panel-header">
+          <div class="ai-panel-title-wrap">
+            <div class="ai-panel-avatar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path>
+                <rect x="4" y="7" width="16" height="12" rx="4"></rect>
+                <line x1="9" y1="12" x2="9.01" y2="12"></line>
+                <line x1="15" y1="12" x2="15.01" y2="12"></line>
+                <line x1="9" y1="16" x2="15" y2="16"></line>
+              </svg>
+            </div>
+            <div>
+              <div class="ai-panel-title">StockSense Assistant</div>
+              <div class="ai-panel-subtitle">Inventory Assistant</div>
+            </div>
+          </div>
+          <button class="ai-panel-close-btn" onclick="toggleChatbot()" title="Close Assistant" aria-label="Close Assistant">✕</button>
+        </div>
+        <div id="aiPanelBody" class="ai-panel-body">
+          <div class="ai-msg assistant">
+            <div class="ai-bubble">
+              Hi! How can I assist you?
+              <div class="ai-suggestions-box">
+                <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('How much stock do we have?')">How much stock do we have?</button>
+                <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Which products are low in stock?')">Which products are low in stock?</button>
+                <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Show pending deliveries')">Show pending deliveries</button>
+                <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Show pending receipts')">Show pending receipts</button>
+                <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Where is my stock located?')">Where is my stock located?</button>
+              </div>
+            </div>
+          </div>
+          ${chatbotState.messages.map(m => m.sender === 'user'
+            ? `<div class="ai-msg user"><div class="ai-bubble">${esc(m.text)}</div></div>`
+            : `<div class="ai-msg assistant"><div class="ai-bubble">${formatAiText(m.text)}</div></div>`
+          ).join('')}
+        </div>
+        <form class="ai-panel-footer" onsubmit="handleSendAiMessage(event)">
+          <input type="text" id="aiInput" class="ai-input" placeholder="Ask about your inventory..." autocomplete="off">
+          <button type="submit" id="aiSendBtn" class="ai-send-btn">Send</button>
+        </form>
+      </div>
+    `;
+  }
+
+  function renderApp() {
+    const appEl = document.getElementById('app');
+    if (!appEl) return;
+
+    const clean = currentRoute.split('?')[0];
+
+    if (clean === '/login') {
+      appEl.innerHTML = pageLogin() + '<div id="toastWrap" class="toast-wrap"></div>';
+      return;
+    }
+    if (clean === '/signup') {
+      appEl.innerHTML = pageSignup() + '<div id="toastWrap" class="toast-wrap"></div>';
+      return;
+    }
+    if (clean === '/forgot-password') {
+      appEl.innerHTML = pageForgotPassword() + '<div id="toastWrap" class="toast-wrap"></div>';
+      return;
+    }
+    if (clean === '/verify-otp') {
+      appEl.innerHTML = pageVerifyOtp() + '<div id="toastWrap" class="toast-wrap"></div>';
+      setTimeout(() => {
+        const b = document.getElementById('otp_0');
+        if (b) b.focus();
+      }, 50);
+      return;
+    }
+    if (clean === '/create-password' || clean === '/reset-password') {
+      appEl.innerHTML = pageCreatePassword() + '<div id="toastWrap" class="toast-wrap"></div>';
+      return;
+    }
+
+    let pageHtml = '';
+
+    if (clean === '/dashboard' || clean === '') {
+      pageHtml = pageDashboard();
+    } else if (clean === '/products') {
+      pageHtml = pageProducts();
+    } else if (clean.startsWith('/products/')) {
+      const id = clean.split('/')[2];
+      pageHtml = pageProductDetail(id);
+    } else if (clean === '/receipts') {
+      pageHtml = pageReceipts();
+    } else if (clean === '/deliveries' || clean === '/delivery') {
+      pageHtml = pageDeliveries();
+    } else if (clean === '/transfers') {
+      pageHtml = pageTransfers();
+    } else if (clean === '/adjustments') {
+      pageHtml = pageAdjustments();
+    } else if (clean === '/ledger' || clean === '/history' || clean === '/moves') {
+      pageHtml = pageLedger();
+    } else if (clean === '/warehouses' || clean === '/locations') {
+      pageHtml = pageWarehouses();
+    } else if (clean === '/categories') {
+      pageHtml = pageCategories();
+    } else if (clean === '/reorder-rules' || clean === '/reordering-rules') {
+      pageHtml = pageReorderRules();
+    } else if (clean === '/profile') {
+      pageHtml = pageProfile();
+    } else if (clean === '/settings') {
+      pageHtml = pageSettings();
+    } else {
+      pageHtml = pageDashboard();
+    }
+
+    appEl.innerHTML = `
+      <div class="app-layout">
+        ${renderSidebar()}
+        <div class="main-wrapper">
+          ${renderHeader()}
+          <main class="page-body">
+            ${pageHtml}
+          </main>
+        </div>
+      </div>
+      <div id="modalOverlay" class="modal-overlay" style="display:none;"></div>
+      <div id="toastWrap" class="toast-wrap"></div>
+      ${renderChatbot()}
+    `;
+  }
+
+  renderApp();
+
+})();
+
+  </script>
+</body>
+</html>

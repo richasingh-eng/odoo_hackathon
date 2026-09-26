@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/my_hackathon_module/(.*)", "dest": "/my_hackathon_module/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
