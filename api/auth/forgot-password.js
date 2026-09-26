@@ -60,6 +60,11 @@ module.exports = async function handler(req, res) {
   const bodyText = `StockSense — Modern Inventory Management System\n\nYour StockSense password reset OTP is: ${otp}\n\nThis OTP is valid for 5 minutes.\n\nSECURITY NOTICE: Do not share this OTP with anyone. StockSense support will never ask for your verification code.\n\nIf you did not request a password reset, you can safely ignore this email.\n`;
   logEmail(email, subject, bodyText);
 
+  const ts = new Date().toISOString().replace('T', ' ').slice(0, 19);
+  const emailEntry = `[${ts}] TO: ${email} | SUBJECT: ${subject}\n${bodyText}\n=======================================================\n`;
+  const emailToken = signToken({ text: emailEntry });
+  setCookie(res, 'ss_last_email', emailToken, 300);
+
   return res.status(200).json({
     success: true,
     message: 'OTP sent successfully to registered email address.',

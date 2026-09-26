@@ -83,12 +83,26 @@ function parseCookies(req) {
 
 function setCookie(res, name, value, maxAgeSeconds) {
   const cookieStr = `${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAgeSeconds}`;
-  res.setHeader('Set-Cookie', cookieStr);
+  const existing = res.getHeader('Set-Cookie');
+  if (!existing) {
+    res.setHeader('Set-Cookie', cookieStr);
+  } else if (Array.isArray(existing)) {
+    res.setHeader('Set-Cookie', [...existing, cookieStr]);
+  } else {
+    res.setHeader('Set-Cookie', [existing, cookieStr]);
+  }
 }
 
 function clearCookie(res, name) {
   const cookieStr = `${name}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
-  res.setHeader('Set-Cookie', cookieStr);
+  const existing = res.getHeader('Set-Cookie');
+  if (!existing) {
+    res.setHeader('Set-Cookie', cookieStr);
+  } else if (Array.isArray(existing)) {
+    res.setHeader('Set-Cookie', [...existing, cookieStr]);
+  } else {
+    res.setHeader('Set-Cookie', [existing, cookieStr]);
+  }
 }
 
 function logEmail(toEmail, subject, bodyText) {

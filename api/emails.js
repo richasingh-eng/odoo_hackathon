@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { memStore, EMAIL_LOG_FILE } = require('./_shared');
+const { memStore, verifyToken, parseCookies, EMAIL_LOG_FILE } = require('./_shared');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,8 +9,15 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
 
+  const cookies = parseCookies(req);
+  const emailPayload = verifyToken(cookies.ss_last_email);
   let text = '';
-  if (fs.existsSync(EMAIL_LOG_FILE)) {
+
+  if (emailPayload && emailPayload.text) {
+    text = emailPayload.text;
+  }
+
+  if (!text && fs.existsSync(EMAIL_LOG_FILE)) {
     try {
       text = fs.readFileSync(EMAIL_LOG_FILE, 'utf8');
     } catch (e) {}
