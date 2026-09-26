@@ -6,7 +6,7 @@
     'description': """
 StockSense — Modern Inventory Management System
 ===============================================
-A modular, human-crafted Inventory Management System (IMS) designed for the Odoo Hackathon.
+A modular, enterprise-grade Inventory Management System (IMS) designed for the Odoo Hackathon.
 
 Features:
 - Live Inventory Dashboard with 6 KPIs and quick action shortcuts

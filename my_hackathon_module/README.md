@@ -65,7 +65,7 @@ my_hackathon_module/
 
 ---
 
-## 🎨 Key UI/UX Highlights (Human-Crafted Polish)
+## 🎨 Key UI/UX Highlights (Production-Grade SaaS Polish)
 
 1. **Excalidraw Visual Fidelity**:
    - Multi-warehouse facility cards with *"1 Critical Items >"* badges.
