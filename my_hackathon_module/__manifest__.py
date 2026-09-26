@@ -9,6 +9,7 @@
         'views/views.xml',
         'views/templates.xml',
         'views/login_signup.xml',
+        'views/stocksense_views.xml',
     ],
     'assets': {
         'web.assets_frontend': [
@@ -21,4 +22,5 @@
     },
     'installable': True,
     'application': True,
+    'auto_install':False,
 }

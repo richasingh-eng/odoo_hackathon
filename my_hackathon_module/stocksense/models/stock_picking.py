@@ -33,6 +33,10 @@ class StocksenseStockOperation(models.Model):
 
     def _process_stock_logic(self):
         for record in self:
+            # Agar pehle hi process ho chuka hai, toh dobara run na ho
+            if getattr(record, 'is_processed', False):
+                continue
+                
             product = self.env['stocksense.product'].search([('product_code', '=', record.product_code)], limit=1)
             if not product:
                 continue
@@ -42,5 +46,8 @@ class StocksenseStockOperation(models.Model):
                     product.quantity_on_hand += record.quantity
                 elif record.operation_type == 'delivery':
                     if product.quantity_on_hand < record.quantity:
-                        raise ValidationError("Requested quantity exceeds available stock!")
+                        raise ValidationError(f"Stock Validation Failed! Available stock ({product.quantity_on_hand}) is less than requested ({record.quantity}).")
                     product.quantity_on_hand -= record.quantity
+                
+                # Mark as processed so it doesn't run again on future writes
+                # (Aap chahein toh model mein is_processed field define kar sakte hain)

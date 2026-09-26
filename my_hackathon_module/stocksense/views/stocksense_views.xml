@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 1. Product Catalog Views (List & Form) -->
+    <record id="view_stocksense_product_list" model="ir.ui.view">
+        <field name="name">stocksense.product.list</field>
+        <field name="model">stocksense.product</field>
+        <field name="arch" type="xml">
+            <list string="Products">
+                <field name="product_code"/>
+                <field name="product_name"/>
+                <field name="category_id"/>
+                <field name="quantity_on_hand"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stocksense_product_form" model="ir.ui.view">
+        <field name="name">stocksense.product.form</field>
+        <field name="model">stocksense.product</field>
+        <field name="arch" type="xml">
+            <form string="Product">
+                <sheet>
+                    <group>
+                        <field name="product_code"/>
+                        <field name="product_name"/>
+                        <field name="category_id"/>
+                        <field name="quantity_on_hand"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- 2. Stock Operation Views (List & Form) -->
+    <record id="view_stocksense_operation_list" model="ir.ui.view">
+        <field name="name">stocksense.stock.operation.list</field>
+        <field name="model">stocksense.stock.operation</field>
+        <field name="arch" type="xml">
+            <list string="Stock Operations">
+                <field name="reference_no"/>
+                <field name="operation_type"/>
+                <field name="product_code"/>
+                <field name="quantity"/>
+                <field name="status"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stocksense_operation_form" model="ir.ui.view">
+        <field name="name">stocksense.stock.operation.form</field>
+        <field name="model">stocksense.stock.operation</field>
+        <field name="arch" type="xml">
+            <form string="Stock Operation">
+                <sheet>
+                    <group>
+                        <field name="reference_no"/>
+                        <field name="operation_type"/>
+                        <field name="product_code"/>
+                        <field name="quantity"/>
+                        <field name="status"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- 3. Actions (Windows) -->
+    <record id="action_stocksense_product" model="ir.actions.act_window">
+        <field name="name">Products</field>
+        <field name="res_model">stocksense.product</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_stocksense_operation" model="ir.actions.act_window">
+        <field name="name">Stock Operations</field>
+        <field name="res_model">stocksense.stock.operation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- 4. Top Menus -->
+    <menuitem id="menu_stocksense_root" name="StockSense" sequence="10"/>
+    
+    <menuitem id="menu_stocksense_catalog" name="Catalog" parent="menu_stocksense_root" sequence="10"/>
+    <menuitem id="menu_stocksense_products" name="Products" parent="menu_stocksense_catalog" action="action_stocksense_product" sequence="10"/>
+    
+    <menuitem id="menu_stocksense_ops" name="Operations" parent="menu_stocksense_root" sequence="20"/>
+    <menuitem id="menu_stocksense_operations" name="Stock Operations" parent="menu_stocksense_ops" action="action_stocksense_operation" sequence="10"/>
+</odoo>
