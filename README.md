@@ -1,6 +1,7 @@
 # StockSense — Modern Inventory Management System (IMS)
 
 > **Enterprise Warehouse Operations & Odoo Hackathon Module**  
+> 🌐 **Live Vercel Deployment**: [https://odoohackathon-ashy.vercel.app](https://odoohackathon-ashy.vercel.app)  
 > Visual Reference: Modern Dark/Light Design System  
 > Data Contract: Aligned with `contract_mock.json` and Odoo 16/17/18/20 Module Specs
 
