@@ -1,4 +1,3 @@
-/* StockSense Custom Auth Styling */
 body.oe_website_login {
     background-color: #f4f6f9 !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -52,7 +51,6 @@ body.oe_website_login {
     background-color: #4338ca !important;
 }
 
-/* Google Button & Divider */
 .stocksense_divider {
     text-align: center;
     position: relative;

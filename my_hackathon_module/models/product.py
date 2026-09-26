@@ -15,3 +15,8 @@ class StocksenseProduct(models.Model):
         'unique(product_code)',
         'The Product Code must be unique!'
     )
+
+class HackathonProduct(models.Model):
+    _name = 'hackathon.product'
+    _inherit = 'stocksense.product'
+    _description = 'Hackathon Product Alias'

@@ -4,3 +4,5 @@ access_stocksense_product,stocksense.product,model_stocksense_product,base.group
 access_stocksense_stock_operation,stocksense.stock.operation,model_stocksense_stock_operation,base.group_user,1,1,1,1
 access_stocksense_receipt,stocksense.receipt,model_stocksense_receipt,base.group_user,1,1,1,1
 access_stocksense_receipt_line,stocksense.receipt.line,model_stocksense_receipt_line,base.group_user,1,1,1,1
+access_hackathon_product,hackathon.product,model_hackathon_product,base.group_user,1,1,1,1
+access_hackathon_stock_operation,hackathon.stock.operation,model_hackathon_stock_operation,base.group_user,1,1,1,1

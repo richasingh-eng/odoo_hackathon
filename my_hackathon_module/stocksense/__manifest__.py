@@ -4,7 +4,10 @@
     'category': 'Warehouse',
     'summary': 'Inventory and Stock Operation Management',
     'depends': ['base'],
-    'data': [],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/stocksense_views.xml',
+    ],
     'installable': True,
     'application': True,
     'author': 'Team',

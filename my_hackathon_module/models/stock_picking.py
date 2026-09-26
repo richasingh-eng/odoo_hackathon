@@ -45,3 +45,8 @@ class StocksenseStockOperation(models.Model):
                     if product.quantity_on_hand < record.quantity:
                         raise ValidationError(f"Stock Validation Failed! Available stock ({product.quantity_on_hand}) is less than requested ({record.quantity}).")
                     product.quantity_on_hand -= record.quantity
+
+class HackathonStockOperation(models.Model):
+    _name = 'hackathon.stock.operation'
+    _inherit = 'stocksense.stock.operation'
+    _description = 'Hackathon Stock Operation Alias'

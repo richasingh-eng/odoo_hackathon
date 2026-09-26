@@ -7,7 +7,7 @@ import secrets
 import hashlib
 import sqlite3
 import smtplib
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from email.mime.text import MIMEText
 
 PORT = 8069
@@ -455,7 +455,7 @@ class StockSenseHandler(SimpleHTTPRequestHandler):
         })
 
     def handle_assistant_chat(self, data):
-        message = (data.get('message') or '').strip()
+        message = (data.get('message') or data.get('query') or '').strip()
         if not message:
             self.send_json(400, {"error": "Message is required."})
             return
@@ -467,7 +467,8 @@ class StockSenseHandler(SimpleHTTPRequestHandler):
 if __name__ == '__main__':
     init_db()
     server_address = ('', PORT)
-    httpd = HTTPServer(server_address, StockSenseHandler)
+    httpd = ThreadingHTTPServer(server_address, StockSenseHandler)
+    httpd.daemon_threads = True
     print(f"StockSense server with secure OTP backend listening on port {PORT}")
     try:
         httpd.serve_forever()

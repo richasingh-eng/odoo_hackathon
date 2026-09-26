@@ -122,7 +122,7 @@ flowchart TD
 ### Option A: Local Python Backend (Full Features with OTP & AI Assistant)
 Run from inside this directory:
 ```powershell
-python server.py
+python my_hackathon_module/server.py
 ```
 Open your browser at:
 ```
@@ -134,12 +134,12 @@ http://localhost:8069/
   - `vikram.m@stocksense.in` (Warehouse Staff)
   - `priya.p@stocksense.in` (Logistics Specialist)
   - `ananya.i@stocksense.in` (Procurement Manager)
-- OTP emails are recorded in `sent_emails.log`.
+- OTP emails are recorded in `my_hackathon_module/sent_emails.log`.
 
 ### Option B: Standalone File (Instant Browser Preview)
-Open `index.html` directly in any web browser without needing any server:
+Open `my_hackathon_module/index.html` directly in any web browser without needing any server:
 ```powershell
-start index.html
+start my_hackathon_module/index.html
 ```
 
 ### Option C: Odoo Module Installation

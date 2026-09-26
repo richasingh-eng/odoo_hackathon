@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import json
 from odoo import http
 from odoo.http import request
@@ -7,13 +6,12 @@ class StockSenseController(http.Controller):
 
     @http.route(['/stocksense', '/inventory', '/my_hackathon_module'], type='http', auth='public', website=True)
     def render_inventory_app(self, **kw):
-        """Renders the StockSense modern inventory UI within Odoo or standalone."""
         return request.render('my_hackathon_module.inventory_app_template', {})
 
     @http.route('/api/products', type='json', auth='public', methods=['GET', 'POST'], csrf=False)
     def get_products(self, **kw):
-        """Mock/live REST API matching contract_mock.json for products."""
-        products = request.env['hackathon.product'].sudo().search([])
+        model_name = 'stocksense.product' if 'stocksense.product' in request.env else 'hackathon.product'
+        products = request.env[model_name].sudo().search([]) if model_name in request.env else []
         if not products:
             return [{
                 "product_code": "ST-001",
@@ -32,8 +30,8 @@ class StockSenseController(http.Controller):
 
     @http.route('/api/operations', type='json', auth='public', methods=['GET', 'POST'], csrf=False)
     def get_operations(self, **kw):
-        """Mock/live REST API matching contract_mock.json for operations."""
-        ops = request.env['hackathon.stock.operation'].sudo().search([])
+        model_name = 'stocksense.stock.operation' if 'stocksense.stock.operation' in request.env else 'hackathon.stock.operation'
+        ops = request.env[model_name].sudo().search([]) if model_name in request.env else []
         if not ops:
             return [{
                 "reference_no": "IN/0001",
