@@ -324,12 +324,15 @@
             <span>Theme: <b>${State.theme === 'dark' ? 'Dark' : 'Light'}</b></span>
             <button class="theme-btn" onclick="toggleTheme()">${State.theme === 'dark' ? '☀️ Light' : '🌙 Dark'}</button>
           </div>
-          <div class="user-card" onclick="go('/profile')">
-            <div class="user-avatar">${initials(user.name)}</div>
-            <div class="user-info">
-              <div class="user-name">${esc(user.name)}</div>
-              <div class="user-role">${esc(user.role)}</div>
+          <div class="user-card" onclick="go('/profile')" style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:10px;overflow:hidden;">
+              <div class="user-avatar">${initials(user.name)}</div>
+              <div class="user-info">
+                <div class="user-name">${esc(user.name)}</div>
+                <div class="user-role">${esc(user.role)}</div>
+              </div>
             </div>
+            <button style="background:none;border:none;cursor:pointer;color:var(--sidebar-muted);font-size:15px;padding:4px;" title="Switch User / Sign Out" onclick="event.stopPropagation(); logoutUser();">🚪</button>
           </div>
         </div>
       </aside>
@@ -1388,22 +1391,314 @@
     `;
   }
 
+  /* =========================================================================
+     10. AUTHENTICATION (Sign In, Sign Up, OTP Reset)
+     ========================================================================= */
+  let otpFlowState = { email: '', otp: '849201' };
+
+  window.handleLogin = function(e) {
+    if (e) e.preventDefault();
+    const email = document.getElementById('loginEmail')?.value.trim() || 'aarav.sharma@stocksense.in';
+    const isStaff = email.toLowerCase().includes('staff') || email.toLowerCase().includes('vikram');
+    State.user = {
+      name: isStaff ? 'Vikram Malhotra' : 'Aarav Sharma',
+      email: email,
+      role: isStaff ? 'Warehouse Staff' : 'Inventory Operations Lead',
+      isLoggedIn: true
+    };
+    saveState();
+    showToast('Signed in as ' + State.user.name + ' (' + State.user.role + ')');
+    go('/dashboard');
+  };
+
+  window.quickLogin = function(role) {
+    if (role === 'staff') {
+      State.user = {
+        name: 'Vikram Malhotra',
+        email: 'vikram.m@stocksense.in',
+        role: 'Warehouse Staff',
+        isLoggedIn: true
+      };
+    } else {
+      State.user = {
+        name: 'Aarav Sharma',
+        email: 'aarav.sharma@stocksense.in',
+        role: 'Inventory Operations Lead',
+        isLoggedIn: true
+      };
+    }
+    saveState();
+    showToast('Active Persona: ' + State.user.name + ' (' + State.user.role + ')');
+    go('/dashboard');
+  };
+
+  window.handleSignup = function(e) {
+    if (e) e.preventDefault();
+    const name = document.getElementById('suName')?.value.trim() || 'Warehouse Specialist';
+    const email = document.getElementById('suEmail')?.value.trim() || 'user@stocksense.in';
+    const role = document.getElementById('suRole')?.value || 'Inventory Operations Lead';
+    State.user = {
+      name: name,
+      email: email,
+      role: role,
+      isLoggedIn: true
+    };
+    saveState();
+    showToast('Welcome to StockSense, ' + name + '! Account created.');
+    go('/dashboard');
+  };
+
+  window.handleSendOtp = function(e) {
+    if (e) e.preventDefault();
+    const email = document.getElementById('fpEmail')?.value.trim() || State.user.email;
+    const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpFlowState = { email: email, otp: randomOtp };
+    showToast('Verification OTP ' + randomOtp + ' sent to ' + email);
+    go('/verify-otp');
+  };
+
+  window.handleVerifyOtpAndReset = function(e) {
+    if (e) e.preventDefault();
+    const code = document.getElementById('otpCode')?.value.trim();
+    if (!code || code.length < 4) {
+      showToast('Please enter the verification OTP code');
+      return;
+    }
+    showToast('Password updated successfully! Welcome back.');
+    State.user.isLoggedIn = true;
+    saveState();
+    setTimeout(() => go('/dashboard'), 400);
+  };
+
+  window.logoutUser = function() {
+    State.user.isLoggedIn = false;
+    saveState();
+    showToast('Signed out of StockSense');
+    go('/login');
+  };
+
+  function pageLogin() {
+    return `
+      <div class="auth-page">
+        <div class="auth-container">
+          <div class="auth-brand">
+            <div class="auth-logo">S</div>
+            <div class="auth-title">StockSense Cloud IMS</div>
+            <div class="auth-sub">Enterprise Inventory Operations Platform</div>
+          </div>
+
+          <div class="auth-card">
+            <div class="auth-card-title">Sign In to StockSense</div>
+            <div class="auth-card-desc">Enter workplace credentials to access warehouse operations.</div>
+
+            <form onsubmit="handleLogin(event)">
+              <div class="auth-field">
+                <label class="auth-label">Work Email</label>
+                <input type="email" id="loginEmail" class="auth-input" placeholder="e.g. aarav.sharma@stocksense.in" value="${esc(State.user?.email || 'aarav.sharma@stocksense.in')}" required>
+              </div>
+
+              <div class="auth-field">
+                <div class="auth-label-row">
+                  <label class="auth-label">Password</label>
+                  <a class="auth-forgot" onclick="go('/forgot-password')">Forgot Password?</a>
+                </div>
+                <input type="password" id="loginPass" class="auth-input" placeholder="••••••••" value="admin123" required>
+              </div>
+
+              <button type="submit" class="auth-btn-primary">Sign In to Dashboard →</button>
+            </form>
+
+            <div class="auth-divider">Or quick test with demo personas</div>
+
+            <div class="auth-quick-login">
+              <div class="quick-role-btn" onclick="quickLogin('manager')">
+                <div>
+                  <strong>Aarav Sharma</strong>
+                  <div style="font-size:11px;color:var(--ink-faint);">Inventory Operations Lead (Manager)</div>
+                </div>
+                <span>⚡ 1-Click</span>
+              </div>
+              <div class="quick-role-btn" onclick="quickLogin('staff')">
+                <div>
+                  <strong>Vikram Malhotra</strong>
+                  <div style="font-size:11px;color:var(--ink-faint);">Warehouse Logistics & Picking Staff</div>
+                </div>
+                <span>⚡ 1-Click</span>
+              </div>
+            </div>
+
+            <div class="auth-footer">
+              Don't have an account? <a onclick="go('/signup')">Create new account</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function pageSignup() {
+    return `
+      <div class="auth-page">
+        <div class="auth-container">
+          <div class="auth-brand">
+            <div class="auth-logo">S</div>
+            <div class="auth-title">StockSense Cloud IMS</div>
+            <div class="auth-sub">Enterprise Inventory Operations Platform</div>
+          </div>
+
+          <div class="auth-card">
+            <div class="auth-card-title">Create StockSense Account</div>
+            <div class="auth-card-desc">Join your logistics team to manage warehouse inventory.</div>
+
+            <form onsubmit="handleSignup(event)">
+              <div class="auth-field">
+                <label class="auth-label">Full Name *</label>
+                <input type="text" id="suName" class="auth-input" placeholder="e.g. Ananya Iyer" required>
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label">Workplace Email *</label>
+                <input type="email" id="suEmail" class="auth-input" placeholder="name@company.in" required>
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label">Organizational Role *</label>
+                <select id="suRole" class="auth-input">
+                  <option value="Inventory Operations Lead">Inventory Operations Lead (Manager)</option>
+                  <option value="Warehouse Staff">Warehouse Logistics & Picking Staff</option>
+                  <option value="Procurement Specialist">Procurement & Receipts Specialist</option>
+                </select>
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label">Password *</label>
+                <input type="password" id="suPass" class="auth-input" placeholder="Create secure password" required minlength="6" value="staff123">
+              </div>
+
+              <button type="submit" class="auth-btn-primary">Create Account & Enter IMS →</button>
+            </form>
+
+            <div class="auth-footer">
+              Already have an account? <a onclick="go('/login')">Sign In</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function pageForgotPassword() {
+    return `
+      <div class="auth-page">
+        <div class="auth-container">
+          <div class="auth-brand">
+            <div class="auth-logo">S</div>
+            <div class="auth-title">StockSense Cloud IMS</div>
+            <div class="auth-sub">Account Recovery & OTP Reset</div>
+          </div>
+
+          <div class="auth-card">
+            <div class="auth-card-title">Reset Your Password</div>
+            <div class="auth-card-desc">We will send a 6-digit One-Time Password (OTP) to verify your identity.</div>
+
+            <form onsubmit="handleSendOtp(event)">
+              <div class="auth-field">
+                <label class="auth-label">Registered Work Email</label>
+                <input type="email" id="fpEmail" class="auth-input" placeholder="e.g. aarav.sharma@stocksense.in" value="${esc(State.user?.email || 'aarav.sharma@stocksense.in')}" required>
+              </div>
+
+              <button type="submit" class="auth-btn-primary">Send 6-Digit OTP Code ➔</button>
+            </form>
+
+            <div class="auth-footer">
+              Remember your credentials? <a onclick="go('/login')">Back to Sign In</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function pageVerifyOtp() {
+    return `
+      <div class="auth-page">
+        <div class="auth-container">
+          <div class="auth-brand">
+            <div class="auth-logo">S</div>
+            <div class="auth-title">StockSense Cloud IMS</div>
+            <div class="auth-sub">Enter Verification Code</div>
+          </div>
+
+          <div class="auth-card">
+            <div class="auth-card-title">Enter Verification OTP</div>
+            <div class="auth-card-desc">Enter the 6-digit code sent to <b>${esc(otpFlowState.email || 'your email')}</b>.</div>
+
+            <div class="otp-info-pill">
+              💡 Demo OTP generated: <b>${otpFlowState.otp || '849201'}</b> (pre-filled for instant testing)
+            </div>
+
+            <form onsubmit="handleVerifyOtpAndReset(event)">
+              <div class="otp-inputs">
+                <input type="text" class="otp-box" maxlength="6" id="otpCode" value="${otpFlowState.otp || '849201'}" style="width:200px;letter-spacing:6px;font-size:22px;">
+              </div>
+
+              <div class="auth-field" style="margin-top:16px;">
+                <label class="auth-label">New Password *</label>
+                <input type="password" id="newPass" class="auth-input" placeholder="Enter new password" required minlength="6" value="newpass123">
+              </div>
+
+              <button type="submit" class="auth-btn-primary">Verify OTP & Update Password →</button>
+            </form>
+
+            <div class="auth-footer">
+              Didn't receive code? <a onclick="handleSendOtp(event)">Resend OTP</a> · <a onclick="go('/login')">Sign In</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   /* Profile & Settings Screens */
   function pageProfile() {
     return `
-      <div class="page-head"><h1 class="page-title">User Profile</h1></div>
-      <div class="table-panel" style="padding:24px;max-width:500px;">
-        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-          <div class="user-avatar" style="width:48px;height:48px;font-size:18px;">${initials(State.user.name)}</div>
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">User Profile & Access Control</h1>
+          <p class="page-sub">Manage active persona, security credentials, and role permissions.</p>
+        </div>
+      </div>
+      <div class="table-panel" style="padding:28px;max-width:560px;">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+          <div class="user-avatar" style="width:52px;height:52px;font-size:20px;">${initials(State.user.name)}</div>
           <div>
-            <div style="font-weight:700;font-size:16px;">${esc(State.user.name)}</div>
-            <div style="color:var(--ink-soft);font-size:12.5px;">${esc(State.user.role)}</div>
+            <div style="font-weight:700;font-size:18px;">${esc(State.user.name)}</div>
+            <div style="color:var(--primary);font-weight:600;font-size:13px;">${esc(State.user.role)}</div>
           </div>
         </div>
-        <div style="margin-bottom:10px;"><strong>Email:</strong> ${esc(State.user.email)}</div>
-        <div style="margin-bottom:10px;"><strong>Organization:</strong> StockSense Enterprise IMS</div>
-        <div style="margin-bottom:16px;"><strong>Location:</strong> India Logistics Hub</div>
-        <button class="btn btn-secondary" onclick="showToast('Password reset link sent to your email')">Change Password</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:13px;">
+          <div style="background:var(--surface-alt);padding:10px 14px;border-radius:var(--radius);">
+            <div style="color:var(--ink-faint);font-size:11px;text-transform:uppercase;">Email</div>
+            <div style="font-weight:600;margin-top:2px;">${esc(State.user.email)}</div>
+          </div>
+          <div style="background:var(--surface-alt);padding:10px 14px;border-radius:var(--radius);">
+            <div style="color:var(--ink-faint);font-size:11px;text-transform:uppercase;">Organization</div>
+            <div style="font-weight:600;margin-top:2px;">StockSense India Logistics</div>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+          <div style="font-weight:700;font-size:13px;margin-bottom:8px;">Switch Demo Persona</div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-secondary" style="flex:1;" onclick="quickLogin('manager')">Manager Persona</button>
+            <button class="btn btn-secondary" style="flex:1;" onclick="quickLogin('staff')">Staff Persona</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+          <button class="btn btn-secondary" onclick="go('/forgot-password')">Reset Password via OTP</button>
+          <button class="btn btn-danger" onclick="logoutUser()">Sign Out</button>
+        </div>
       </div>
     `;
   }
@@ -2033,6 +2328,25 @@
     if (!appEl) return;
 
     const clean = currentRoute.split('?')[0];
+
+    // Standalone Authentication Screens (without main sidebar/header)
+    if (clean === '/login') {
+      appEl.innerHTML = pageLogin() + '<div id="toastWrap" class="toast-wrap"></div>';
+      return;
+    }
+    if (clean === '/signup') {
+      appEl.innerHTML = pageSignup() + '<div id="toastWrap" class="toast-wrap"></div>';
+      return;
+    }
+    if (clean === '/forgot-password') {
+      appEl.innerHTML = pageForgotPassword() + '<div id="toastWrap" class="toast-wrap"></div>';
+      return;
+    }
+    if (clean === '/verify-otp') {
+      appEl.innerHTML = pageVerifyOtp() + '<div id="toastWrap" class="toast-wrap"></div>';
+      return;
+    }
+
     let pageHtml = '';
 
     if (clean === '/dashboard' || clean === '') {
