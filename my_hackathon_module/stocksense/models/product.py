@@ -1,5 +1,11 @@
 from odoo import models, fields
 
+class StockSenseCategory(models.Model):
+    _name = 'stocksense.category'
+    _description = 'StockSense Category'
+
+    name = fields.Char(string='Category Name', required=True)
+
 class StockSenseProduct(models.Model):
     _name = 'stocksense.product'
     _description = 'StockSense Product'
