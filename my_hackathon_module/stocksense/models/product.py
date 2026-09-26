@@ -1,18 +1,13 @@
 from odoo import models, fields
 
-class StockSenseCategory(models.Model):
-    _name = 'stocksense.category'
-    _description = 'StockSense Category'
-
-    name = fields.Char(string='Category Name', required=True)
-
-class StockSenseProduct(models.Model):
+class StocksenseProduct(models.Model):
     _name = 'stocksense.product'
     _description = 'StockSense Product'
 
-    name = fields.Char(string='Product Name', required=True)
-    product_code = fields.Char(string='Product SKU / Code', required=True)
-    category_id = fields.Many2one('stocksense.category', string='Category')
+    product_code = fields.Char(string='Product Code', required=True)
+    product_name = fields.Char(string='Product Name', required=True)
+    category= fields.Char(string='Category')
     uom = fields.Char(string='Unit of Measure', default='Units')
-    quantity_on_hand = fields.Float(string='Quantity on Hand', default=0.0)
-    price = fields.Float(string='Unit Price', default=0.0)
+    quantity_on_hand = fields.Integer(string='Quantity on Hand', default=0)
+
+    
