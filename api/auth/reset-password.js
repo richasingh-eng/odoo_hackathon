@@ -1,4 +1,4 @@
-const { memStore, saveStore, verifyToken, parseCookies, clearCookie } = require('../_shared');
+const { memStore, saveStore, verifyToken, parseCookies, setCookie, clearCookie, signToken } = require('../_shared');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -72,6 +72,9 @@ module.exports = async function handler(req, res) {
 
   clearCookie(res, 'ss_reset_token');
   clearCookie(res, 'ss_otp_state');
+
+  const credsToken = signToken({ email: email, pass: password });
+  setCookie(res, 'ss_creds', credsToken, 86400 * 30);
 
   return res.status(200).json({
     success: true,

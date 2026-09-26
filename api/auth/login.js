@@ -1,4 +1,4 @@
-const { memStore } = require('../_shared');
+const { memStore, parseCookies, verifyToken } = require('../_shared');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -26,8 +26,30 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Email and password are required.' });
   }
 
-  const user = memStore.users[email];
-  if (!user || user.pass !== password) {
+  const cookies = parseCookies(req);
+  const updatedCreds = verifyToken(cookies.ss_creds);
+
+  let user = memStore.users[email];
+  if (!user && updatedCreds && updatedCreds.email === email) {
+    user = {
+      id: Date.now(),
+      name: updatedCreds.name || email.split('@')[0],
+      email: email,
+      role: updatedCreds.role || 'Inventory Operations Lead',
+      pass: updatedCreds.pass
+    };
+  }
+
+  if (!user) {
+    return res.status(401).json({ error: 'Invalid email or password.' });
+  }
+
+  let validPass = user.pass;
+  if (updatedCreds && updatedCreds.email === email && updatedCreds.pass) {
+    validPass = updatedCreds.pass;
+  }
+
+  if (password !== validPass) {
     return res.status(401).json({ error: 'Invalid email or password.' });
   }
 

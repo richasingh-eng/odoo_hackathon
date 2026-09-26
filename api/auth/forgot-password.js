@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { memStore, saveStore, signToken, setCookie, logEmail, EMAIL_REGEX } = require('../_shared');
+const { memStore, saveStore, signToken, verifyToken, parseCookies, setCookie, logEmail, EMAIL_REGEX } = require('../_shared');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -25,7 +25,20 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Please enter a valid email address.' });
   }
 
-  const user = memStore.users[email];
+  const cookies = parseCookies(req);
+  const updatedCreds = verifyToken(cookies.ss_creds);
+
+  let user = memStore.users[email];
+  if (!user && updatedCreds && updatedCreds.email === email) {
+    user = {
+      id: Date.now(),
+      name: updatedCreds.name || email.split('@')[0],
+      email: email,
+      role: updatedCreds.role || 'Inventory Operations Lead',
+      pass: updatedCreds.pass
+    };
+  }
+
   if (!user) {
     return res.status(404).json({ error: 'The email address or account details are incorrect.' });
   }

@@ -1,4 +1,4 @@
-const { memStore, saveStore, EMAIL_REGEX } = require('../_shared');
+const { memStore, saveStore, signToken, setCookie, EMAIL_REGEX } = require('../_shared');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -46,6 +46,9 @@ module.exports = async function handler(req, res) {
     pass: password
   };
   saveStore();
+
+  const credsToken = signToken({ email: email, pass: password, name: name, role: role });
+  setCookie(res, 'ss_creds', credsToken, 86400 * 30);
 
   return res.status(200).json({
     success: true,
