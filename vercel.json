@@ -1,9 +1,10 @@
 {
   "version": 2,
   "cleanUrls": true,
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/my_hackathon_module/(.*)", "dest": "/my_hackathon_module/$1" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/sent_emails.log", "destination": "/api/emails" },
+    { "source": "/my_hackathon_module/(.*)", "destination": "/my_hackathon_module/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

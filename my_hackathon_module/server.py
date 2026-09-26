@@ -46,7 +46,12 @@ def init_db():
         ('aarav.sharma@stocksense.in', 'Aarav Sharma', 'Inventory Operations Lead', 'admin123'),
         ('vikram.m@stocksense.in', 'Vikram Malhotra', 'Warehouse Staff', 'staff123'),
         ('priya.p@stocksense.in', 'Priya Patel', 'Logistics Specialist', 'staff123'),
-        ('ananya.i@stocksense.in', 'Ananya Iyer', 'Procurement Manager', 'admin123')
+        ('ananya.i@stocksense.in', 'Ananya Iyer', 'Procurement Manager', 'admin123'),
+        ('admin@stocksense.in', 'StockSense Admin', 'Inventory Operations Lead', 'admin123'),
+        ('user@stocksense.in', 'StockSense User', 'Warehouse Staff', 'staff123'),
+        ('manager@stocksense.in', 'Warehouse Manager', 'Inventory Operations Lead', 'admin123'),
+        ('staff@stocksense.in', 'Floor Operator', 'Warehouse Staff', 'staff123'),
+        ('demo@stocksense.in', 'Demo Specialist', 'Inventory Operations Lead', 'admin123')
     ]
     for email, name, role, raw_pass in seed_users:
         cur.execute('SELECT id FROM users WHERE email = ?', (email,))
@@ -92,6 +97,7 @@ If you did not request a password reset, you can safely ignore this email.
         with open(EMAIL_LOG, 'a', encoding='utf-8') as f:
             ts = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
             f.write(f"[{ts}] TO: {to_email} | SUBJECT: {subject}\n{body_text}\n{'='*55}\n")
+        print(f"[StockSense Mailer] OTP email dispatched to {to_email}. Verification Code: {otp}", flush=True)
     except Exception:
         return False
     return True
@@ -101,6 +107,25 @@ EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
 class StockSenseHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=MODULE_DIR, **kwargs)
+
+    def do_GET(self):
+        if self.path in ('/api/emails', '/sent_emails.log'):
+            if os.path.exists(EMAIL_LOG):
+                try:
+                    with open(EMAIL_LOG, 'rb') as f:
+                        content = f.read()
+                except Exception:
+                    content = b"StockSense Enterprise Mail Dispatcher (Audit Log)\n"
+            else:
+                content = b"StockSense Enterprise Mail Dispatcher (Audit Log)\n"
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/plain; charset=utf-8')
+            self.send_header('Content-Length', str(len(content)))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(content)
+            return
+        super().do_GET()
 
     def do_POST(self):
         if self.path.startswith('/api/auth/'):
