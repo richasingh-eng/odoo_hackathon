@@ -1,0 +1,35 @@
+{
+  "project_name": "odoo_hackathon",
+  "models": {
+    "product": {
+      "product_code": "STRING",
+      "product_name": "STRING",
+      "category": "STRING",
+      "uom": "STRING",
+      "quantity_on_hand": "INTEGER"
+    },
+    "stock_operation": {
+      "reference_no": "STRING",
+      "operation_type": "STRING",
+      "partner_name": "STRING",
+      "product_code": "STRING",
+      "quantity": "INTEGER",
+      "status": "STRING"
+    }
+  },
+  "sample_product": {
+    "product_code": "ST-001",
+    "product_name": "Office Chair",
+    "category": "Furniture",
+    "uom": "Units",
+    "quantity_on_hand": 100
+  },
+  "sample_operation": {
+    "reference_no": "IN/0001",
+    "operation_type": "receipt",
+    "partner_name": "ABC Suppliers",
+    "product_code": "ST-001",
+    "quantity": 20,
+    "status": "draft"
+  }
+}
