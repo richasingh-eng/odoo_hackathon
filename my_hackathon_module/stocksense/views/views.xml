@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <!-- =========================
+         CATEGORY VIEWS
+    ========================== -->
+
+    <record id="view_stocksense_category_tree" model="ir.ui.view">
+        <field name="name">stocksense.category.tree</field>
+        <field name="model">stocksense.category</field>
+        <field name="arch" type="xml">
+            <list string="Categories">
+                <field name="name"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stocksense_category_form" model="ir.ui.view">
+        <field name="name">stocksense.category.form</field>
+        <field name="model">stocksense.category</field>
+        <field name="arch" type="xml">
+            <form string="Category">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_stocksense_category" model="ir.actions.act_window">
+        <field name="name">Categories</field>
+        <field name="res_model">stocksense.category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+    <!-- =========================
+         PRODUCT VIEWS
+    ========================== -->
+
+    <record id="view_stocksense_product_tree" model="ir.ui.view">
+        <field name="name">stocksense.product.tree</field>
+        <field name="model">stocksense.product</field>
+        <field name="arch" type="xml">
+            <list string="Products">
+                <field name="product_code"/>
+                <field name="name"/>
+                <field name="category_id"/>
+                <field name="uom"/>
+                <field name="quantity_on_hand"/>
+                <field name="price"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stocksense_product_form" model="ir.ui.view">
+        <field name="name">stocksense.product.form</field>
+        <field name="model">stocksense.product</field>
+        <field name="arch" type="xml">
+            <form string="Product">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="product_code"/>
+                            <field name="category_id"/>
+                        </group>
+
+                        <group>
+                            <field name="uom"/>
+                            <field name="quantity_on_hand"/>
+                            <field name="price"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_stocksense_product" model="ir.actions.act_window">
+        <field name="name">Products</field>
+        <field name="res_model">stocksense.product</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+    <!-- =========================
+         STOCK OPERATION VIEWS
+    ========================== -->
+
+    <record id="view_stocksense_picking_tree" model="ir.ui.view">
+        <field name="name">stocksense.stock.picking.tree</field>
+        <field name="model">stocksense.stock.picking</field>
+        <field name="arch" type="xml">
+            <list string="Stock Operations">
+                <field name="reference_no"/>
+                <field name="operation_type"/>
+                <field name="partner_name"/>
+                <field name="total_quantity"/>
+                <field name="status"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stocksense_picking_form" model="ir.ui.view">
+        <field name="name">stocksense.stock.picking.form</field>
+        <field name="model">stocksense.stock.picking</field>
+        <field name="arch" type="xml">
+
+            <form string="Stock Operation">
+
+                <header>
+
+                    <button name="action_confirm"
+                            string="Confirm"
+                            type="object"
+                            class="btn-primary"
+                            invisible="status != 'draft'"/>
+
+                    <button name="action_done"
+                            string="Validate"
+                            type="object"
+                            class="btn-primary"
+                            invisible="status != 'confirmed'"/>
+
+                    <button name="action_cancel"
+                            string="Cancel"
+                            type="object"
+                            invisible="status in ('done', 'cancelled')"/>
+
+                    <field name="status"
+                           widget="statusbar"
+                           statusbar_visible="draft,confirmed,done"/>
+
+                </header>
+
+                <sheet>
+
+                    <group>
+
+                        <group>
+                            <field name="reference_no"/>
+                            <field name="operation_type"/>
+                            <field name="partner_name"/>
+                        </group>
+
+                        <group>
+                            <field name="source_location_id"/>
+                            <field name="destination_location_id"/>
+                            <field name="total_quantity" readonly="1"/>
+                        </group>
+
+                    </group>
+
+                    <notebook>
+
+                        <page string="Stock Moves">
+
+                            <field name="move_line_ids">
+
+                                <list editable="bottom">
+
+                                    <field name="product_id"/>
+                                    <field name="product_code"
+                                           readonly="1"/>
+                                    <field name="product_name"
+                                           readonly="1"/>
+                                    <field name="uom"
+                                           readonly="1"/>
+                                    <field name="quantity"/>
+
+                                </list>
+
+                            </field>
+
+                        </page>
+
+                    </notebook>
+
+                </sheet>
+
+            </form>
+
+        </field>
+    </record>
+
+    <record id="action_stocksense_picking" model="ir.actions.act_window">
+        <field name="name">Stock Operations</field>
+        <field name="res_model">stocksense.stock.picking</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+    <!-- =========================
+         LOCATION VIEWS
+    ========================== -->
+
+    <record id="view_stocksense_location_tree" model="ir.ui.view">
+        <field name="name">stocksense.location.tree</field>
+        <field name="model">stocksense.location</field>
+        <field name="arch" type="xml">
+
+            <list string="Locations">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="active"/>
+            </list>
+
+        </field>
+    </record>
+
+    <record id="view_stocksense_location_form" model="ir.ui.view">
+        <field name="name">stocksense.location.form</field>
+        <field name="model">stocksense.location</field>
+        <field name="arch" type="xml">
+
+            <form string="Location">
+
+                <sheet>
+
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                        <field name="active"/>
+                    </group>
+
+                </sheet>
+
+            </form>
+
+        </field>
+    </record>
+
+    <record id="action_stocksense_location" model="ir.actions.act_window">
+        <field name="name">Locations</field>
+        <field name="res_model">stocksense.location</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+    <!-- =========================
+         LOCATION STOCK VIEWS
+    ========================== -->
+
+    <record id="view_stocksense_location_stock_tree" model="ir.ui.view">
+        <field name="name">stocksense.location.stock.tree</field>
+        <field name="model">stocksense.location.stock</field>
+        <field name="arch" type="xml">
+
+            <list string="Location Stock">
+                <field name="location_id"/>
+                <field name="product_id"/>
+                <field name="quantity"/>
+            </list>
+
+        </field>
+    </record>
+
+    <record id="view_stocksense_location_stock_form" model="ir.ui.view">
+        <field name="name">stocksense.location.stock.form</field>
+        <field name="model">stocksense.location.stock</field>
+        <field name="arch" type="xml">
+
+            <form string="Location Stock">
+
+                <sheet>
+
+                    <group>
+                        <field name="location_id"/>
+                        <field name="product_id"/>
+                        <field name="quantity"/>
+                    </group>
+
+                </sheet>
+
+            </form>
+
+        </field>
+    </record>
+
+    <record id="action_stocksense_location_stock" model="ir.actions.act_window">
+        <field name="name">Location Stock</field>
+        <field name="res_model">stocksense.location.stock</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+    <!-- =========================
+         MAIN MENU
+    ========================== -->
+
+    <menuitem id="menu_stocksense_root"
+              name="StockSense"
+              sequence="10"/>
+
+    <menuitem id="menu_stocksense_products"
+              name="Products"
+              parent="menu_stocksense_root"
+              action="action_stocksense_product"
+              sequence="10"/>
+
+    <menuitem id="menu_stocksense_categories"
+              name="Categories"
+              parent="menu_stocksense_root"
+              action="action_stocksense_category"
+              sequence="20"/>
+
+    <menuitem id="menu_stocksense_locations"
+              name="Locations"
+              parent="menu_stocksense_root"
+              action="action_stocksense_location"
+              sequence="25"/>
+
+    <menuitem id="menu_stocksense_location_stock"
+              name="Location Stock"
+              parent="menu_stocksense_root"
+              action="action_stocksense_location_stock"
+              sequence="27"/>
+
+    <menuitem id="menu_stocksense_operations"
+              name="Stock Operations"
+              parent="menu_stocksense_root"
+              action="action_stocksense_picking"
+              sequence="30"/>
+
+</odoo>
