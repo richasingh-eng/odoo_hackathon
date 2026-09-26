@@ -1411,21 +1411,193 @@
     `;
   }
 
-  let otpFlowState = { email: '', otp: '849201' };
+  let otpFlow = {
+    email: '',
+    maskedEmail: '',
+    timerSeconds: 300,
+    timerInterval: null,
+    cooldownSeconds: 30,
+    cooldownInterval: null,
+    attempts: 0,
+    isExpired: false,
+    isLocked: false,
+    resetToken: '',
+    errorMessage: '',
+    isResetComplete: false
+  };
 
-  window.handleLogin = function(e) {
+  function maskEmail(email) {
+    if (!email || !email.includes('@')) return email || '';
+    const parts = email.split('@');
+    const u = parts[0];
+    const d = parts[1];
+    if (u.length <= 2) return u[0] + '***@' + d;
+    return u[0] + '***' + u[u.length - 1] + '@' + d;
+  }
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+  }
+
+  function updateOtpTimerUI() {
+    const timerTextEl = document.getElementById('otpTimerText');
+    const timerWrapEl = document.getElementById('otpTimerWrap');
+    const btnVerify = document.getElementById('btnVerifyOtp');
+    const errEl = document.getElementById('otpError');
+    if (otpFlow.isExpired) {
+      if (timerTextEl) timerTextEl.innerText = 'OTP has expired. Please request a new OTP.';
+      if (timerWrapEl) timerWrapEl.classList.add('expired');
+      if (btnVerify) {
+        btnVerify.disabled = true;
+        btnVerify.style.opacity = '0.6';
+        btnVerify.style.cursor = 'not-allowed';
+      }
+      if (errEl) {
+        errEl.innerText = 'OTP has expired. Please request a new OTP.';
+        errEl.style.display = 'flex';
+      }
+    } else {
+      if (timerTextEl) timerTextEl.innerText = 'OTP expires in ' + formatTime(otpFlow.timerSeconds);
+      if (timerWrapEl) timerWrapEl.classList.remove('expired');
+    }
+  }
+
+  function updateCooldownUI() {
+    const btnResend = document.getElementById('btnResendOtp');
+    if (!btnResend) return;
+    if (otpFlow.cooldownSeconds > 0) {
+      btnResend.disabled = true;
+      btnResend.innerText = 'Resend OTP in ' + otpFlow.cooldownSeconds + 's';
+    } else {
+      btnResend.disabled = false;
+      btnResend.innerText = 'Resend OTP';
+    }
+  }
+
+  function startOtpTimer() {
+    if (otpFlow.timerInterval) clearInterval(otpFlow.timerInterval);
+    otpFlow.timerSeconds = 300;
+    otpFlow.isExpired = false;
+    otpFlow.timerInterval = setInterval(() => {
+      otpFlow.timerSeconds--;
+      if (otpFlow.timerSeconds <= 0) {
+        otpFlow.timerSeconds = 0;
+        otpFlow.isExpired = true;
+        clearInterval(otpFlow.timerInterval);
+      }
+      updateOtpTimerUI();
+    }, 1000);
+  }
+
+  function startCooldownTimer() {
+    if (otpFlow.cooldownInterval) clearInterval(otpFlow.cooldownInterval);
+    otpFlow.cooldownSeconds = 30;
+    otpFlow.cooldownInterval = setInterval(() => {
+      otpFlow.cooldownSeconds--;
+      if (otpFlow.cooldownSeconds <= 0) {
+        otpFlow.cooldownSeconds = 0;
+        clearInterval(otpFlow.cooldownInterval);
+      }
+      updateCooldownUI();
+    }, 1000);
+  }
+
+  window.handleOtpInput = function(el, index) {
+    el.value = el.value.replace(/[^0-9]/g, '');
+    if (el.value.length >= 1) {
+      el.value = el.value.slice(0, 1);
+      const next = document.getElementById('otp_' + (index + 1));
+      if (next) next.focus();
+    }
+    const err = document.getElementById('otpError');
+    if (err) err.style.display = 'none';
+  };
+
+  window.handleOtpKeyDown = function(e, index) {
+    if (e.key === 'Backspace' && !e.target.value) {
+      const prev = document.getElementById('otp_' + (index - 1));
+      if (prev) {
+        prev.focus();
+        prev.value = '';
+      }
+    }
+  };
+
+  window.handleOtpPaste = function(e) {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text').trim();
+    if (!pasted) return;
+    const digits = pasted.replace(/[^0-9]/g, '').slice(0, 6);
+    for (let i = 0; i < digits.length; i++) {
+      const box = document.getElementById('otp_' + i);
+      if (box) box.value = digits[i];
+    }
+    const targetIndex = Math.min(digits.length, 5);
+    const targetBox = document.getElementById('otp_' + targetIndex);
+    if (targetBox) targetBox.focus();
+    const err = document.getElementById('otpError');
+    if (err) err.style.display = 'none';
+  };
+
+  window.togglePasswordVisibility = function(inputId, btnEl) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (input.type === 'password') {
+      input.type = 'text';
+      btnEl.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+    } else {
+      input.type = 'password';
+      btnEl.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    }
+  };
+
+  window.handleLogin = async function(e) {
     if (e) e.preventDefault();
     const email = document.getElementById('loginEmail')?.value.trim() || 'aarav.sharma@stocksense.in';
-    const isStaff = email.toLowerCase().includes('staff') || email.toLowerCase().includes('vikram');
-    State.user = {
-      name: isStaff ? 'Vikram Malhotra' : 'Aarav Sharma',
-      email: email,
-      role: isStaff ? 'Warehouse Staff' : 'Inventory Operations Lead',
-      isLoggedIn: true
-    };
-    saveState();
-    showToast('Signed in as ' + State.user.name + ' (' + State.user.role + ')');
-    go('/dashboard');
+    const pass = document.getElementById('loginPass')?.value || '';
+    const errEl = document.getElementById('loginError');
+    if (errEl) errEl.style.display = 'none';
+
+    try {
+      const resp = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: pass })
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        if (errEl) {
+          errEl.innerText = data.error || 'Invalid email or password.';
+          errEl.style.display = 'flex';
+        } else {
+          showToast(data.error || 'Invalid email or password.');
+        }
+        return;
+      }
+      State.user = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role,
+        isLoggedIn: true
+      };
+      saveState();
+      showToast('Signed in as ' + State.user.name + ' (' + State.user.role + ')');
+      go('/dashboard');
+    } catch (err) {
+      const isStaff = email.toLowerCase().includes('staff') || email.toLowerCase().includes('vikram');
+      State.user = {
+        name: isStaff ? 'Vikram Malhotra' : 'Aarav Sharma',
+        email: email,
+        role: isStaff ? 'Warehouse Staff' : 'Inventory Operations Lead',
+        isLoggedIn: true
+      };
+      saveState();
+      showToast('Signed in as ' + State.user.name + ' (' + State.user.role + ')');
+      go('/dashboard');
+    }
   };
 
   window.quickLogin = function(role) {
@@ -1449,42 +1621,260 @@
     go('/dashboard');
   };
 
-  window.handleSignup = function(e) {
+  window.handleSignup = async function(e) {
     if (e) e.preventDefault();
     const name = document.getElementById('suName')?.value.trim() || 'Warehouse Specialist';
     const email = document.getElementById('suEmail')?.value.trim() || 'user@stocksense.in';
     const role = document.getElementById('suRole')?.value || 'Inventory Operations Lead';
-    State.user = {
-      name: name,
-      email: email,
-      role: role,
-      isLoggedIn: true
-    };
+    const pass = document.getElementById('suPass')?.value || 'staff123';
+    try {
+      const resp = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, email: email, role: role, password: pass })
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        State.user = {
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          role: data.user.role,
+          isLoggedIn: true
+        };
+      } else {
+        State.user = { name: name, email: email, role: role, isLoggedIn: true };
+      }
+    } catch (err) {
+      State.user = { name: name, email: email, role: role, isLoggedIn: true };
+    }
     saveState();
     showToast('Welcome to StockSense, ' + name + '! Account created.');
     go('/dashboard');
   };
 
-  window.handleSendOtp = function(e) {
+  window.handleSendOtp = async function(e) {
     if (e) e.preventDefault();
-    const email = document.getElementById('fpEmail')?.value.trim() || State.user.email;
-    const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpFlowState = { email: email, otp: randomOtp };
-    showToast('Verification OTP ' + randomOtp + ' sent to ' + email);
-    go('/verify-otp');
-  };
-
-  window.handleVerifyOtpAndReset = function(e) {
-    if (e) e.preventDefault();
-    const code = document.getElementById('otpCode')?.value.trim();
-    if (!code || code.length < 4) {
-      showToast('Please enter the verification OTP code');
+    const errEl = document.getElementById('fpError');
+    const email = (document.getElementById('fpEmail')?.value || '').trim();
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!email || !emailRegex.test(email)) {
+      if (errEl) {
+        errEl.innerText = 'Please enter a valid email address.';
+        errEl.style.display = 'flex';
+      }
       return;
     }
-    showToast('Password updated successfully! Welcome back.');
-    State.user.isLoggedIn = true;
-    saveState();
-    setTimeout(() => go('/dashboard'), 400);
+    try {
+      const resp = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        if (errEl) {
+          errEl.innerText = data.error || 'The email address or account details are incorrect.';
+          errEl.style.display = 'flex';
+        }
+        return;
+      }
+      otpFlow.email = email;
+      otpFlow.maskedEmail = maskEmail(email);
+      otpFlow.attempts = 0;
+      otpFlow.isLocked = false;
+      otpFlow.isExpired = false;
+      otpFlow.errorMessage = '';
+      otpFlow.isResetComplete = false;
+      startOtpTimer();
+      startCooldownTimer();
+      go('/verify-otp');
+    } catch (err) {
+      if (errEl) {
+        errEl.innerText = 'The email address or account details are incorrect.';
+        errEl.style.display = 'flex';
+      }
+    }
+  };
+
+  window.handleResendOtp = async function() {
+    if (otpFlow.cooldownSeconds > 0) return;
+    const email = otpFlow.email;
+    const errEl = document.getElementById('otpError');
+    try {
+      const resp = await fetch('/api/auth/resend-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        if (errEl) {
+          errEl.innerText = data.error || 'Failed to resend OTP.';
+          errEl.style.display = 'flex';
+        }
+        return;
+      }
+      otpFlow.attempts = 0;
+      otpFlow.isLocked = false;
+      otpFlow.isExpired = false;
+      otpFlow.errorMessage = '';
+      if (errEl) errEl.style.display = 'none';
+      const btnVerify = document.getElementById('btnVerifyOtp');
+      if (btnVerify) {
+        btnVerify.disabled = false;
+        btnVerify.style.opacity = '1';
+        btnVerify.style.cursor = 'pointer';
+      }
+      for (let i = 0; i < 6; i++) {
+        const box = document.getElementById('otp_' + i);
+        if (box) box.value = '';
+      }
+      startOtpTimer();
+      startCooldownTimer();
+      updateOtpTimerUI();
+      updateCooldownUI();
+      const box0 = document.getElementById('otp_0');
+      if (box0) box0.focus();
+      showToast('New OTP sent successfully to registered email address.');
+    } catch (err) {
+      if (errEl) {
+        errEl.innerText = 'Failed to resend OTP.';
+        errEl.style.display = 'flex';
+      }
+    }
+  };
+
+  window.handleVerifyOtp = async function(e) {
+    if (e) e.preventDefault();
+    const errEl = document.getElementById('otpError');
+    const btnVerify = document.getElementById('btnVerifyOtp');
+    if (otpFlow.isLocked) {
+      if (errEl) {
+        errEl.innerText = 'Too many incorrect attempts. Please request a new OTP.';
+        errEl.style.display = 'flex';
+      }
+      return;
+    }
+    if (otpFlow.isExpired || otpFlow.timerSeconds <= 0) {
+      if (errEl) {
+        errEl.innerText = 'OTP has expired. Please request a new OTP.';
+        errEl.style.display = 'flex';
+      }
+      return;
+    }
+    let otp = '';
+    for (let i = 0; i < 6; i++) {
+      const box = document.getElementById('otp_' + i);
+      otp += (box ? box.value.trim() : '');
+    }
+    if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+      if (errEl) {
+        errEl.innerText = 'Incorrect OTP. Please check the code and try again.';
+        errEl.style.display = 'flex';
+      }
+      return;
+    }
+    try {
+      const resp = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: otpFlow.email, otp: otp })
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        otpFlow.attempts++;
+        if (data.error && data.error.includes('Too many incorrect attempts')) {
+          otpFlow.isLocked = true;
+          if (btnVerify) {
+            btnVerify.disabled = true;
+            btnVerify.style.opacity = '0.6';
+            btnVerify.style.cursor = 'not-allowed';
+          }
+          if (errEl) {
+            errEl.innerText = 'Too many incorrect attempts. Please request a new OTP.';
+            errEl.style.display = 'flex';
+          }
+        } else if (data.error && data.error.includes('expired')) {
+          otpFlow.isExpired = true;
+          if (btnVerify) {
+            btnVerify.disabled = true;
+            btnVerify.style.opacity = '0.6';
+            btnVerify.style.cursor = 'not-allowed';
+          }
+          if (errEl) {
+            errEl.innerText = 'OTP has expired. Please request a new OTP.';
+            errEl.style.display = 'flex';
+          }
+        } else {
+          if (errEl) {
+            errEl.innerText = data.error || 'Incorrect OTP. Please check the code and try again.';
+            errEl.style.display = 'flex';
+          }
+        }
+        return;
+      }
+      if (otpFlow.timerInterval) clearInterval(otpFlow.timerInterval);
+      if (otpFlow.cooldownInterval) clearInterval(otpFlow.cooldownInterval);
+      otpFlow.resetToken = data.reset_token;
+      otpFlow.errorMessage = '';
+      otpFlow.isResetComplete = false;
+      go('/create-password');
+    } catch (err) {
+      if (errEl) {
+        errEl.innerText = 'Incorrect OTP. Please check the code and try again.';
+        errEl.style.display = 'flex';
+      }
+    }
+  };
+
+  window.handleResetPassword = async function(e) {
+    if (e) e.preventDefault();
+    const errEl = document.getElementById('npError');
+    const password = (document.getElementById('npPass')?.value || '');
+    const confirmPassword = (document.getElementById('npConfirmPass')?.value || '');
+
+    if (password.length < 8) {
+      if (errEl) {
+        errEl.innerText = 'Password must contain at least 8 characters.';
+        errEl.style.display = 'flex';
+      }
+      return;
+    }
+    if (password !== confirmPassword) {
+      if (errEl) {
+        errEl.innerText = 'Passwords do not match.';
+        errEl.style.display = 'flex';
+      }
+      return;
+    }
+    try {
+      const resp = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: otpFlow.email,
+          reset_token: otpFlow.resetToken,
+          password: password,
+          confirm_password: confirmPassword
+        })
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        if (errEl) {
+          errEl.innerText = data.error || 'Failed to reset password. Please try again.';
+          errEl.style.display = 'flex';
+        }
+        return;
+      }
+      otpFlow.isResetComplete = true;
+      renderApp();
+    } catch (err) {
+      if (errEl) {
+        errEl.innerText = 'Failed to reset password. Please try again.';
+        errEl.style.display = 'flex';
+      }
+    }
   };
 
   window.logoutUser = function() {
@@ -1508,6 +1898,8 @@
             <div class="auth-card-title">Sign In to StockSense</div>
             <div class="auth-card-desc">Enter workplace credentials to access warehouse operations.</div>
 
+            <div id="loginError" class="auth-alert-error" style="display:none;"></div>
+
             <form onsubmit="handleLogin(event)">
               <div class="auth-field">
                 <label class="auth-label">Work Email</label>
@@ -1519,7 +1911,12 @@
                   <label class="auth-label">Password</label>
                   <a class="auth-forgot" onclick="go('/forgot-password')">Forgot Password?</a>
                 </div>
-                <input type="password" id="loginPass" class="auth-input" placeholder="••••••••" value="admin123" required>
+                <div class="password-field-wrap">
+                  <input type="password" id="loginPass" class="auth-input" placeholder="••••••••" value="admin123" required>
+                  <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('loginPass', this)" title="Toggle password">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
               </div>
 
               <button type="submit" class="auth-btn-primary">Sign In to Dashboard →</button>
@@ -1589,7 +1986,12 @@
 
               <div class="auth-field">
                 <label class="auth-label">Password *</label>
-                <input type="password" id="suPass" class="auth-input" placeholder="Create secure password" required minlength="6" value="staff123">
+                <div class="password-field-wrap">
+                  <input type="password" id="suPass" class="auth-input" placeholder="Create secure password" required minlength="8" value="staff123">
+                  <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('suPass', this)" title="Toggle password">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
               </div>
 
               <button type="submit" class="auth-btn-primary">Create Account & Enter IMS →</button>
@@ -1611,24 +2013,26 @@
           <div class="auth-brand">
             <div class="auth-logo">S</div>
             <div class="auth-title">StockSense Cloud IMS</div>
-            <div class="auth-sub">Account Recovery & OTP Reset</div>
+            <div class="auth-sub">Enterprise Inventory Operations Platform</div>
           </div>
 
           <div class="auth-card">
-            <div class="auth-card-title">Reset Your Password</div>
-            <div class="auth-card-desc">We will send a 6-digit One-Time Password (OTP) to verify your identity.</div>
+            <div class="auth-card-title">Reset your password</div>
+            <div class="auth-card-desc">Enter the email address associated with your StockSense account.</div>
+
+            <div id="fpError" class="auth-alert-error" style="display:none;"></div>
 
             <form onsubmit="handleSendOtp(event)">
               <div class="auth-field">
-                <label class="auth-label">Registered Work Email</label>
-                <input type="email" id="fpEmail" class="auth-input" placeholder="e.g. aarav.sharma@stocksense.in" value="${esc(State.user?.email || 'aarav.sharma@stocksense.in')}" required>
+                <label class="auth-label">Email Address</label>
+                <input type="email" id="fpEmail" class="auth-input" placeholder="e.g. aarav.sharma@stocksense.in" value="${esc(otpFlow.email || State.user?.email || 'aarav.sharma@stocksense.in')}" required>
               </div>
 
-              <button type="submit" class="auth-btn-primary">Send 6-Digit OTP Code ➔</button>
+              <button type="submit" id="btnSendOtp" class="auth-btn-primary">Send OTP</button>
             </form>
 
             <div class="auth-footer">
-              Remember your credentials? <a onclick="go('/login')">Back to Sign In</a>
+              Remember your password? <a onclick="go('/login')">Back to Sign In</a>
             </div>
           </div>
         </div>
@@ -1643,38 +2047,125 @@
           <div class="auth-brand">
             <div class="auth-logo">S</div>
             <div class="auth-title">StockSense Cloud IMS</div>
-            <div class="auth-sub">Enter Verification Code</div>
+            <div class="auth-sub">Enterprise Inventory Operations Platform</div>
           </div>
 
           <div class="auth-card">
-            <div class="auth-card-title">Enter Verification OTP</div>
-            <div class="auth-card-desc">Enter the 6-digit code sent to <b>${esc(otpFlowState.email || 'your email')}</b>.</div>
+            <div class="auth-card-title">Verify OTP</div>
+            <div class="auth-card-desc">Enter the 6-digit OTP sent to your email.</div>
 
-            <div class="otp-info-pill">
-              💡 Demo OTP generated: <b>${otpFlowState.otp || '849201'}</b> (pre-filled for instant testing)
+            <div style="text-align:center;margin-bottom:14px;">
+              <span class="auth-masked-email">${esc(otpFlow.maskedEmail || maskEmail(otpFlow.email || 'aarav.sharma@stocksense.in'))}</span>
             </div>
 
-            <form onsubmit="handleVerifyOtpAndReset(event)">
-              <div class="otp-inputs">
-                <input type="text" class="otp-box" maxlength="6" id="otpCode" value="${otpFlowState.otp || '849201'}" style="width:200px;letter-spacing:6px;font-size:22px;">
+            <div id="otpError" class="auth-alert-error" style="${otpFlow.errorMessage ? 'display:flex;' : 'display:none;'}">${esc(otpFlow.errorMessage || '')}</div>
+
+            <form onsubmit="handleVerifyOtp(event)">
+              <div class="otp-inputs" onpaste="handleOtpPaste(event)">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-box otp-single-box" id="otp_0" oninput="handleOtpInput(this, 0)" onkeydown="handleOtpKeyDown(event, 0)" autofocus autocomplete="off">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-box otp-single-box" id="otp_1" oninput="handleOtpInput(this, 1)" onkeydown="handleOtpKeyDown(event, 1)" autocomplete="off">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-box otp-single-box" id="otp_2" oninput="handleOtpInput(this, 2)" onkeydown="handleOtpKeyDown(event, 2)" autocomplete="off">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-box otp-single-box" id="otp_3" oninput="handleOtpInput(this, 3)" onkeydown="handleOtpKeyDown(event, 3)" autocomplete="off">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-box otp-single-box" id="otp_4" oninput="handleOtpInput(this, 4)" onkeydown="handleOtpKeyDown(event, 4)" autocomplete="off">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-box otp-single-box" id="otp_5" oninput="handleOtpInput(this, 5)" onkeydown="handleOtpKeyDown(event, 5)" autocomplete="off">
               </div>
 
-              <div class="auth-field" style="margin-top:16px;">
-                <label class="auth-label">New Password *</label>
-                <input type="password" id="newPass" class="auth-input" placeholder="Enter new password" required minlength="6" value="newpass123">
+              <div id="otpTimerWrap" class="otp-timer-wrap ${otpFlow.isExpired ? 'expired' : ''}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span id="otpTimerText">${otpFlow.isExpired ? 'OTP has expired. Please request a new OTP.' : ('OTP expires in ' + formatTime(otpFlow.timerSeconds))}</span>
               </div>
 
-              <button type="submit" class="auth-btn-primary">Verify OTP & Update Password →</button>
+              <button type="submit" id="btnVerifyOtp" class="auth-btn-primary" ${otpFlow.isLocked || otpFlow.isExpired ? 'disabled style="opacity:0.6;cursor:not-allowed;"' : ''}>Verify OTP</button>
+
+              <div class="otp-resend-wrap">
+                <button type="button" id="btnResendOtp" class="otp-resend-btn" onclick="handleResendOtp()" ${otpFlow.cooldownSeconds > 0 ? 'disabled' : ''}>
+                  ${otpFlow.cooldownSeconds > 0 ? ('Resend OTP in ' + otpFlow.cooldownSeconds + 's') : 'Resend OTP'}
+                </button>
+              </div>
             </form>
 
             <div class="auth-footer">
-              Didn't receive code? <a onclick="handleSendOtp(event)">Resend OTP</a> · <a onclick="go('/login')">Sign In</a>
+              <a onclick="go('/login')">Back to Sign In</a>
             </div>
           </div>
         </div>
       </div>
     `;
   }
+
+  function pageCreatePassword() {
+    if (otpFlow.isResetComplete) {
+      return `
+        <div class="auth-page">
+          <div class="auth-container">
+            <div class="auth-brand">
+              <div class="auth-logo">S</div>
+              <div class="auth-title">StockSense Cloud IMS</div>
+              <div class="auth-sub">Enterprise Inventory Operations Platform</div>
+            </div>
+
+            <div class="auth-card">
+              <div class="auth-success-box">
+                <div class="auth-success-icon">✓</div>
+                <div class="auth-success-title">Password reset successfully.</div>
+                <div class="auth-success-desc">Your credentials have been securely updated. You can now sign in with your new password.</div>
+                <button class="auth-btn-primary" onclick="go('/login')">Back to Login</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="auth-page">
+        <div class="auth-container">
+          <div class="auth-brand">
+            <div class="auth-logo">S</div>
+            <div class="auth-title">StockSense Cloud IMS</div>
+            <div class="auth-sub">Enterprise Inventory Operations Platform</div>
+          </div>
+
+          <div class="auth-card">
+            <div class="auth-card-title">Create New Password</div>
+            <div class="auth-card-desc">Your new password must be different from previous passwords.</div>
+
+            <div id="npError" class="auth-alert-error" style="display:none;"></div>
+
+            <form onsubmit="handleResetPassword(event)">
+              <div class="auth-field">
+                <label class="auth-label">New Password</label>
+                <div class="password-field-wrap">
+                  <input type="password" id="npPass" class="auth-input" placeholder="At least 8 characters" required minlength="8" autocomplete="new-password">
+                  <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('npPass', this)" title="Toggle password">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
+                <div class="password-hint">Password must contain at least 8 characters.</div>
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label">Confirm New Password</label>
+                <div class="password-field-wrap">
+                  <input type="password" id="npConfirmPass" class="auth-input" placeholder="Re-enter new password" required minlength="8" autocomplete="new-password">
+                  <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('npConfirmPass', this)" title="Toggle password">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" id="btnResetPassword" class="auth-btn-primary">Reset Password</button>
+            </form>
+
+            <div class="auth-footer">
+              <a onclick="go('/login')">Back to Sign In</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
 
   function pageProfile() {
     return `
@@ -2331,6 +2822,302 @@
     showToast('Adjustment committed! Stock updated to ' + counted + ' ' + p.uom);
   };
 
+  let chatbotState = {
+    isOpen: typeof window !== 'undefined' && window.location && window.location.hash && (window.location.hash.includes('assistant=open') || window.location.hash.includes('assistant=demo')),
+    messages: typeof window !== 'undefined' && window.location && window.location.hash && window.location.hash.includes('assistant=demo') ? [
+      { sender: 'user', text: 'Which products are low in stock?' },
+      { sender: 'assistant', text: 'There are currently **3** products below their reorder level:\n• **Cold-Rolled Steel Sheet (2mm)** (STL-SH-002): **38 sheet** available (Reorder: 50 sheet)\n• **Precision Ball Bearings 608ZZ** (CMP-BRG-608): **0 pcs** available (Reorder: 250 pcs)\n• **Modular Heavy-Duty Steel Bracket** (FG-BRK-100): **14 pcs** available (Reorder: 20 pcs)' }
+    ] : [],
+    isLoading: false
+  };
+  window.chatbotState = chatbotState;
+
+  function formatAiText(txt) {
+    let s = esc(txt || '');
+    s = s.replace(new RegExp('\\*\\*(.*?)\\*\\*', 'g'), '<strong>$1</strong>');
+    s = s.replace(/\n/g, '<br>');
+    return s;
+  }
+
+  window.generateInventoryResponse = function(query) {
+    const q = (query || '').trim().toLowerCase();
+    const products = State.data.products || [];
+    const warehouses = State.data.warehouses || [];
+    const receipts = State.data.receipts || [];
+    const deliveries = State.data.deliveries || [];
+    const transfers = State.data.transfers || [];
+    const adjustments = State.data.adjustments || [];
+    const ledger = State.data.ledger || [];
+
+    if (q.includes('password') || q.includes('otp') || q.includes('token') || q.includes('secret') || q.includes('credential')) {
+      return 'For security and privacy reasons, I do not access or expose passwords, OTPs, or authentication credentials.';
+    }
+
+    if (q.includes('delete') || q.includes('remove product') || q.includes('transfer now') || q.includes('deliver now') || q.includes('modify stock')) {
+      return 'I am a read-only inventory assistant and cannot directly modify or execute stock transactions. Please use the operations forms in the dashboard to perform transfers, receipts, or adjustments.';
+    }
+
+    if (q.includes('low in stock') || q.includes('low stock') || q.includes('below reorder') || q.includes('reorder level') || q.includes('reorder threshold') || q.includes('reorder alert')) {
+      const lowItems = products.filter(p => Number(p.stock) <= Number(p.reorder));
+      if (lowItems.length === 0) {
+        return 'All products currently maintain inventory levels above their minimum reorder thresholds.';
+      }
+      const listStr = lowItems.map(p => `• **${p.name}** (${p.sku}): **${p.stock} ${p.uom}** available (Reorder: ${p.reorder} ${p.uom})`).join('\n');
+      return `There are currently **${lowItems.length}** products below their reorder level:\n${listStr}`;
+    }
+
+    if (q.includes('out of stock') || q.includes('zero stock') || q.includes('depleted') || q.includes('no stock')) {
+      const oos = products.filter(p => Number(p.stock) === 0);
+      if (oos.length === 0) {
+        return 'All products currently have positive on-hand inventory. No items are completely out of stock.';
+      }
+      const oosList = oos.map(p => `• **${p.name}** (${p.sku})`).join('\n');
+      return `There are currently **${oos.length}** out-of-stock product(s):\n${oosList}`;
+    }
+
+    if (q.includes('pending deliver') || q.includes('outgoing shipment') || (q.includes('deliver') && (q.includes('pending') || q.includes('show') || q.includes('order')))) {
+      const pending = deliveries.filter(d => (d.status || '').toLowerCase() !== 'done' && (d.status || '').toLowerCase() !== 'delivered');
+      if (pending.length === 0) {
+        return 'There are currently no pending delivery orders. All outbound shipments have been dispatched.';
+      }
+      const listStr = pending.map(d => `• **${(d.number || d.id).toUpperCase()}**: ${d.customer} (${d.items ? d.items.length : 1} item(s), Status: ${d.status})`).join('\n');
+      return `There are currently **${pending.length}** pending delivery orders:\n${listStr}`;
+    }
+
+    if (q.includes('pending receipt') || q.includes('incoming shipment') || (q.includes('receipt') && (q.includes('pending') || q.includes('show')))) {
+      const pending = receipts.filter(r => (r.status || '').toLowerCase() !== 'done' && (r.status || '').toLowerCase() !== 'received');
+      if (pending.length === 0) {
+        return 'There are currently no pending receipts. All incoming shipments have been received and verified.';
+      }
+      const listStr = pending.map(r => `• **${(r.number || r.id).toUpperCase()}**: ${r.supplier} (${r.items ? r.items.length : 1} item(s), Status: ${r.status})`).join('\n');
+      return `There are currently **${pending.length}** pending receipts:\n${listStr}`;
+    }
+
+    if (q.includes('where is my stock located') || q.includes('where is stock located') || q.includes('warehouse location') || q.includes('where is my stock') || q.includes('where are my products') || q.includes('warehouses')) {
+      if (warehouses.length === 0) {
+        return 'I don\'t have enough inventory data to answer that.';
+      }
+      const whList = warehouses.map(w => {
+        const locNames = (w.locations || []).map(l => l.name || l.zone).slice(0, 3).join(', ');
+        return `• **${w.name}**${locNames ? ' (' + locNames + ')' : ''}`;
+      }).join('\n');
+      return `Inventory is stored across **${warehouses.length}** warehouse locations:\n${whList}`;
+    }
+
+    if (q.includes('how much stock') || q.includes('total stock') || q.includes('stock do we have') || q.includes('inventory summary') || q.includes('overall stock')) {
+      const totalQty = products.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
+      const lowCount = products.filter(p => Number(p.stock) <= Number(p.reorder)).length;
+      return `StockSense currently tracks **${products.length}** products with a total on-hand quantity of **${totalQty.toLocaleString()}** units across all warehouses (${lowCount} below reorder level).`;
+    }
+
+    function stemWord(w) {
+      return w.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/s$/, '').replace(/es$/, '');
+    }
+    const qStems = q.split(/\s+/).map(stemWord).filter(w => w.length >= 3);
+
+    for (const p of products) {
+      const skuLower = (p.sku || '').toLowerCase();
+      const pNameLower = (p.name || '').toLowerCase();
+      const pStems = pNameLower.split(/\s+/).map(stemWord).filter(w => w.length >= 3);
+      const matches = pStems.filter(ps => qStems.includes(ps));
+
+      const isSkuMatch = skuLower && q.includes(skuLower);
+      const isNameMatch = q.includes(pNameLower);
+
+      if (isSkuMatch || isNameMatch || matches.length >= 2 || (pStems.length === 1 && matches.length === 1)) {
+        const wh = warehouses.find(w => w.id === p.warehouse);
+        const whName = wh ? wh.name : 'Main Logistics Hub';
+        const loc = wh && wh.locations ? wh.locations.find(l => l.id === p.location) : null;
+        const locName = loc ? loc.name : (p.location || 'Zone A');
+        return `**${p.name}** (${p.sku}) currently has **${p.stock} ${p.uom}** available.\n• Storage: ${whName} (${locName})\n• Reorder Level: ${p.reorder} ${p.uom} (${Number(p.stock) <= Number(p.reorder) ? '⚠️ Below Threshold' : '✅ Optimal'})`;
+      }
+    }
+
+    if (q.includes('transfer') || q.includes('internal move')) {
+      if (transfers.length === 0) {
+        return 'There are currently no internal transfers recorded.';
+      }
+      const tList = transfers.slice(0, 3).map(t => `• **${t.id.toUpperCase()}**: ${t.source} ➔ ${t.destination} (Status: ${t.status})`).join('\n');
+      return `There are **${transfers.length}** internal transfers recorded:\n${tList}`;
+    }
+
+    if (q.includes('movement') || q.includes('ledger') || q.includes('recent move') || q.includes('history')) {
+      if (ledger.length === 0) {
+        return 'No stock movements have been recorded yet.';
+      }
+      const moves = ledger.slice(0, 3).map(m => `• **${m.ref}**: ${m.op} of ${m.qty > 0 ? '+' : ''}${m.qty} (${m.source} ➔ ${m.destination}) on ${m.date}`).join('\n');
+      return `Here are the latest stock movements from the ledger:\n${moves}`;
+    }
+
+    if (q.includes('adjustment') || q.includes('cycle count') || q.includes('audit')) {
+      return `StockSense has recorded **${adjustments.length}** physical count adjustments in the inventory log.`;
+    }
+
+    if (q === 'hi' || q === 'hello' || q === 'hey' || q.startsWith('hi ') || q.startsWith('hello ') || q === 'help') {
+      return 'Hi! How can I assist you with your inventory operations today? You can ask about stock quantities, low-stock alerts, pending receipts, pending deliveries, or storage locations.';
+    }
+
+    return 'I don\'t have enough inventory data to answer that.';
+  }
+
+  window.toggleChatbot = function() {
+    chatbotState.isOpen = !chatbotState.isOpen;
+    const panel = document.getElementById('aiAssistantPanel');
+    if (panel) {
+      panel.style.display = chatbotState.isOpen ? 'flex' : 'none';
+      if (chatbotState.isOpen) {
+        setTimeout(() => {
+          const input = document.getElementById('aiInput');
+          if (input) input.focus();
+          scrollAiMessages();
+        }, 50);
+      }
+    }
+  };
+
+  window.askAiQuestion = function(text) {
+    processAiMessage(text);
+  };
+
+  window.handleSendAiMessage = function(e) {
+    if (e) e.preventDefault();
+    const input = document.getElementById('aiInput');
+    const text = (input?.value || '').trim();
+    if (!text || chatbotState.isLoading) return;
+    input.value = '';
+    processAiMessage(text);
+  };
+
+  function scrollAiMessages() {
+    const body = document.getElementById('aiPanelBody');
+    if (body) {
+      body.scrollTop = body.scrollHeight;
+    }
+  }
+
+  async function processAiMessage(userText) {
+    if (!userText || chatbotState.isLoading) return;
+    chatbotState.isLoading = true;
+    chatbotState.messages.push({ sender: 'user', text: userText });
+    updateAiChatBody();
+
+    const bodyEl = document.getElementById('aiPanelBody');
+    if (bodyEl) {
+      const typingEl = document.createElement('div');
+      typingEl.id = 'aiTypingIndicator';
+      typingEl.className = 'ai-msg assistant';
+      typingEl.innerHTML = '<div class="ai-bubble"><div class="ai-loading-dots"><span></span><span></span><span></span></div></div>';
+      bodyEl.appendChild(typingEl);
+      scrollAiMessages();
+    }
+
+    try {
+      fetch('/api/assistant/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userText })
+      }).catch(() => {});
+
+      await new Promise(resolve => setTimeout(resolve, 350));
+      const reply = window.generateInventoryResponse(userText);
+      chatbotState.messages.push({ sender: 'assistant', text: reply });
+    } catch (err) {
+      chatbotState.messages.push({ sender: 'assistant', text: "Sorry, I couldn't process that request. Please try again." });
+    } finally {
+      chatbotState.isLoading = false;
+      const typingEl = document.getElementById('aiTypingIndicator');
+      if (typingEl) typingEl.remove();
+      updateAiChatBody();
+    }
+  }
+
+  function updateAiChatBody() {
+    const bodyEl = document.getElementById('aiPanelBody');
+    if (!bodyEl) return;
+    let html = `
+      <div class="ai-msg assistant">
+        <div class="ai-bubble">
+          Hi! How can I assist you?
+          <div class="ai-suggestions-box">
+            <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('How much stock do we have?')">How much stock do we have?</button>
+            <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Which products are low in stock?')">Which products are low in stock?</button>
+            <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Show pending deliveries')">Show pending deliveries</button>
+            <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Show pending receipts')">Show pending receipts</button>
+            <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Where is my stock located?')">Where is my stock located?</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    chatbotState.messages.forEach(m => {
+      if (m.sender === 'user') {
+        html += `<div class="ai-msg user"><div class="ai-bubble">${esc(m.text)}</div></div>`;
+      } else {
+        html += `<div class="ai-msg assistant"><div class="ai-bubble">${formatAiText(m.text)}</div></div>`;
+      }
+    });
+
+    bodyEl.innerHTML = html;
+    scrollAiMessages();
+  }
+
+  function renderChatbot() {
+    return `
+      <button id="aiAssistantBtn" class="ai-assistant-btn" onclick="toggleChatbot()" title="StockSense Inventory Assistant" aria-label="Open Inventory Assistant">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path>
+          <rect x="4" y="7" width="16" height="12" rx="4"></rect>
+          <line x1="9" y1="12" x2="9.01" y2="12"></line>
+          <line x1="15" y1="12" x2="15.01" y2="12"></line>
+          <line x1="9" y1="16" x2="15" y2="16"></line>
+        </svg>
+      </button>
+
+      <div id="aiAssistantPanel" class="ai-assistant-panel" style="${chatbotState.isOpen ? 'display:flex;' : 'display:none;'}" aria-live="polite">
+        <div class="ai-panel-header">
+          <div class="ai-panel-title-wrap">
+            <div class="ai-panel-avatar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path>
+                <rect x="4" y="7" width="16" height="12" rx="4"></rect>
+                <line x1="9" y1="12" x2="9.01" y2="12"></line>
+                <line x1="15" y1="12" x2="15.01" y2="12"></line>
+                <line x1="9" y1="16" x2="15" y2="16"></line>
+              </svg>
+            </div>
+            <div>
+              <div class="ai-panel-title">StockSense Assistant</div>
+              <div class="ai-panel-subtitle">Inventory Assistant</div>
+            </div>
+          </div>
+          <button class="ai-panel-close-btn" onclick="toggleChatbot()" title="Close Assistant" aria-label="Close Assistant">✕</button>
+        </div>
+        <div id="aiPanelBody" class="ai-panel-body">
+          <div class="ai-msg assistant">
+            <div class="ai-bubble">
+              Hi! How can I assist you?
+              <div class="ai-suggestions-box">
+                <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('How much stock do we have?')">How much stock do we have?</button>
+                <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Which products are low in stock?')">Which products are low in stock?</button>
+                <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Show pending deliveries')">Show pending deliveries</button>
+                <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Show pending receipts')">Show pending receipts</button>
+                <button type="button" class="ai-suggestion-chip" onclick="askAiQuestion('Where is my stock located?')">Where is my stock located?</button>
+              </div>
+            </div>
+          </div>
+          ${chatbotState.messages.map(m => m.sender === 'user'
+            ? `<div class="ai-msg user"><div class="ai-bubble">${esc(m.text)}</div></div>`
+            : `<div class="ai-msg assistant"><div class="ai-bubble">${formatAiText(m.text)}</div></div>`
+          ).join('')}
+        </div>
+        <form class="ai-panel-footer" onsubmit="handleSendAiMessage(event)">
+          <input type="text" id="aiInput" class="ai-input" placeholder="Ask about your inventory..." autocomplete="off">
+          <button type="submit" id="aiSendBtn" class="ai-send-btn">Send</button>
+        </form>
+      </div>
+    `;
+  }
+
   function renderApp() {
     const appEl = document.getElementById('app');
     if (!appEl) return;
@@ -2351,6 +3138,14 @@
     }
     if (clean === '/verify-otp') {
       appEl.innerHTML = pageVerifyOtp() + '<div id="toastWrap" class="toast-wrap"></div>';
+      setTimeout(() => {
+        const b = document.getElementById('otp_0');
+        if (b) b.focus();
+      }, 50);
+      return;
+    }
+    if (clean === '/create-password' || clean === '/reset-password') {
+      appEl.innerHTML = pageCreatePassword() + '<div id="toastWrap" class="toast-wrap"></div>';
       return;
     }
 
@@ -2399,6 +3194,7 @@
       </div>
       <div id="modalOverlay" class="modal-overlay" style="display:none;"></div>
       <div id="toastWrap" class="toast-wrap"></div>
+      ${renderChatbot()}
     `;
   }
 

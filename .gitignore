@@ -10,6 +10,7 @@ ENV/
 
 # Odoo / Database / Logs
 *.log
+*.db
 .DS_Store
 .vscode/
 .idea/
