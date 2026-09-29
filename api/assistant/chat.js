@@ -24,7 +24,10 @@ module.exports = async function handler(req, res) {
 
   let reply = "I am your StockSense AI Inventory Assistant. You can ask me about current stock quantities, low stock items, reorder alerts, pending receipts, and delivery orders.";
 
-  if (msg.includes('low') || msg.includes('alert') || msg.includes('reorder')) {
+  const isGreeting = /^(hi+|hello+|hey+|hola|greetings)\b/i.test(msg) || /^(hi+|hello+|hey+)/i.test(msg) || msg.includes('how can i assist you') || msg === 'help';
+  if (isGreeting) {
+    reply = "Hii! How can I assist you? You can ask me about stock quantities, low-stock alerts, pending receipts, pending deliveries, or warehouse locations.";
+  } else if (msg.includes('low') || msg.includes('alert') || msg.includes('reorder')) {
     reply = "⚠️ Low Stock Alert: We have 2 SKUs currently near or below safety threshold: 'Industrial Bearings' (18 units, threshold 25) and 'Hydraulic Valve' (12 units, threshold 20). Reorder rules recommend generating POs totaling 35 units.";
   } else if (msg.includes('out of stock') || msg.includes('zero')) {
     reply = "🚨 Out of Stock: 'Copper Wire 2.5mm' is currently at 0 units on hand at Central Staging. A replenishment receipt (WH/IN/0014) is scheduled for vendor delivery tomorrow.";

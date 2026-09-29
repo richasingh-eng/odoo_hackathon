@@ -1333,3 +1333,55 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     height: 420px;
   }
 }
+.auth-notif-box {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+.auth-notif-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+.auth-notif-badge {
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.auth-notif-sub {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+.auth-notif-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.auth-notif-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 4px;
+}
+.auth-notif-autofill {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.auth-notif-autofill:hover {
+  opacity: 0.9;
+}

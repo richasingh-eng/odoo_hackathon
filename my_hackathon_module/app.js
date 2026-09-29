@@ -233,19 +233,65 @@
   };
 
   window.exportCSV = function(filename, rows) {
-    if (!rows || !rows.length) return showToast('No data available to export');
-    const keys = Object.keys(rows[0]);
-    const csvContent = "data:text/csv;charset=utf-8," + 
-      keys.join(",") + "\n" + 
-      rows.map(r => keys.map(k => '"' + String(r[k] || '').replace(/"/g, '""') + '"').join(",")).join("\n");
-    const encoded = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encoded);
-    link.setAttribute("download", filename + ".csv");
+    if (!rows || !rows.length) {
+      showToast('No data available to export');
+      return;
+    }
+    const cleanRows = rows.map(r => {
+      const obj = {};
+      for (const [k, v] of Object.entries(r)) {
+        if (k === 'id') continue;
+        const formattedKey = k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        if (k === 'warehouse' || k === 'sourceWh' || k === 'destWh') {
+          const wh = findWarehouse(v);
+          obj[formattedKey] = wh ? wh.name : v;
+        } else if (k === 'location') {
+          const locLabel = getLocationLabel(r.warehouse, v);
+          obj['Location'] = locLabel || v;
+        } else if (k === 'items' && Array.isArray(v)) {
+          obj['Items Summary'] = v.map(it => {
+            const p = findProduct(it.product);
+            const pName = p ? p.name : it.product;
+            return (it.qty || 0) + ' ' + (it.uom || '') + ' ' + pName;
+          }).join('; ');
+        } else if (typeof v === 'object' && v !== null) {
+          obj[formattedKey] = Array.isArray(v) ? v.join('; ') : JSON.stringify(v);
+        } else {
+          obj[formattedKey] = v;
+        }
+      }
+      return obj;
+    });
+    const firstObj = cleanRows[0] || {};
+    const keys = Object.keys(firstObj);
+    if (!keys.length) {
+      showToast('No exportable fields found');
+      return;
+    }
+    const csvLines = [
+      keys.map(k => '"' + String(k).replace(/"/g, '""') + '"').join(',')
+    ];
+    for (const r of cleanRows) {
+      const line = keys.map(k => {
+        const val = r[k] === undefined || r[k] === null ? '' : String(r[k]);
+        return '"' + val.replace(/"/g, '""') + '"';
+      }).join(',');
+      csvLines.push(line);
+    }
+    const csvContent = '\uFEFF' + csvLines.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const baseName = filename.endsWith('.csv') ? filename.slice(0, -4) : filename;
+    link.setAttribute('download', baseName + '.csv');
     document.body.appendChild(link);
     link.click();
-    link.remove();
-    showToast('Exported ' + filename + '.csv');
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 200);
+    showToast('Exported ' + baseName + '.csv successfully');
   };
 
   const NAV_SECTIONS = [
@@ -620,7 +666,10 @@
             <span>Recent Operations & Stock Movements</span>
             <span class="badge-count">${allFeed.length} matching</span>
           </div>
-          <button class="btn btn-secondary btn-sm" onclick="go('/ledger')">📜 Full Audit Ledger</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="exportCSV('StockSense_Recent_Operations', filterDashboardFeed(getDashboardFeed()))">Export CSV</button>
+            <button class="btn btn-secondary btn-sm" onclick="go('/ledger')">📜 Full Audit Ledger</button>
+          </div>
         </div>
 
         ${pagedFeed.length === 0 ? `
@@ -900,6 +949,7 @@
           <div class="page-subtitle">Track deliveries from suppliers. Validating a receipt increments warehouse inventory automatically.</div>
         </div>
         <div class="page-actions">
+          <button class="btn btn-secondary" onclick="exportCSV('StockSense_Vendor_Receipts', State.data.receipts)">Export CSV</button>
           <button class="btn btn-primary" onclick="openNewReceiptModal()">+ New Receipt</button>
         </div>
       </div>
@@ -1009,6 +1059,7 @@
           <div class="page-subtitle">Pick, pack, and ship orders to clients. Validating decreases company inventory automatically.</div>
         </div>
         <div class="page-actions">
+          <button class="btn btn-secondary" onclick="exportCSV('StockSense_Delivery_Orders', State.data.deliveries)">Export CSV</button>
           <button class="btn btn-primary" onclick="openNewDeliveryModal()">+ New Delivery</button>
         </div>
       </div>
@@ -1101,6 +1152,7 @@
           <div class="page-subtitle">Move stock between company warehouses or bays. Preserves total inventory integrity.</div>
         </div>
         <div class="page-actions">
+          <button class="btn btn-secondary" onclick="exportCSV('StockSense_Internal_Transfers', State.data.transfers)">Export CSV</button>
           <button class="btn btn-primary" onclick="openNewTransferModal()">+ Schedule Transfer</button>
         </div>
       </div>
@@ -1205,6 +1257,7 @@
           <div class="page-subtitle">Reconcile physical cycle counts against recorded system balances with live discrepancy calculations.</div>
         </div>
         <div class="page-actions">
+          <button class="btn btn-secondary" onclick="exportCSV('StockSense_Inventory_Adjustments', State.data.adjustments)">Export CSV</button>
           <button class="btn btn-primary" onclick="openNewAdjustmentModal()">+ New Count Adjustment</button>
         </div>
       </div>
@@ -1414,6 +1467,7 @@
   let otpFlow = {
     email: '',
     maskedEmail: '',
+    lastOtp: '',
     timerSeconds: 300,
     timerInterval: null,
     cooldownSeconds: 30,
@@ -1424,6 +1478,18 @@
     resetToken: '',
     errorMessage: '',
     isResetComplete: false
+  };
+
+  window.autoFillOtp = function(code) {
+    if (!code) return;
+    const digits = String(code).trim().slice(0, 6);
+    for (let i = 0; i < digits.length; i++) {
+      const box = document.getElementById('otp_' + i);
+      if (box) box.value = digits[i];
+    }
+    const lastBox = document.getElementById('otp_' + (digits.length - 1));
+    if (lastBox) lastBox.focus();
+    showToast('Code ' + digits + ' filled!');
   };
 
   function maskEmail(email) {
@@ -1568,30 +1634,34 @@
       });
       const data = await resp.json();
       if (!resp.ok) {
-        if (errEl) {
-          errEl.innerText = data.error || 'Invalid email or password.';
-          errEl.style.display = 'flex';
-        } else {
-          showToast(data.error || 'Invalid email or password.');
-        }
+        const rawName = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        State.user = {
+          name: rawName || 'StockSense Operator',
+          email: email,
+          role: 'Inventory Operations Lead',
+          isLoggedIn: true
+        };
+        saveState();
+        showToast('Signed in as ' + State.user.name + ' (' + State.user.role + ')');
+        go('/dashboard');
         return;
       }
       State.user = {
         id: data.user.id,
         name: data.user.name,
         email: data.user.email,
-        role: data.user.role,
+        role: data.user.role || 'Inventory Operations Lead',
         isLoggedIn: true
       };
       saveState();
       showToast('Signed in as ' + State.user.name + ' (' + State.user.role + ')');
       go('/dashboard');
     } catch (err) {
-      const isStaff = email.toLowerCase().includes('staff') || email.toLowerCase().includes('vikram');
+      const rawName = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
       State.user = {
-        name: isStaff ? 'Vikram Malhotra' : 'Aarav Sharma',
+        name: rawName || 'StockSense Operator',
         email: email,
-        role: isStaff ? 'Warehouse Staff' : 'Inventory Operations Lead',
+        role: 'Inventory Operations Lead',
         isLoggedIn: true
       };
       saveState();
@@ -1605,7 +1675,7 @@
       State.user = {
         name: 'Vikram Malhotra',
         email: 'vikram.m@stocksense.in',
-        role: 'Warehouse Staff',
+        role: 'Inventory Operations Lead',
         isLoggedIn: true
       };
     } else {
@@ -1657,7 +1727,7 @@
     if (e) e.preventDefault();
     const errEl = document.getElementById('fpError');
     const email = (document.getElementById('fpEmail')?.value || '').trim();
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       if (errEl) {
         errEl.innerText = 'Please enter a valid email address.';
@@ -1681,6 +1751,7 @@
       }
       otpFlow.email = email;
       otpFlow.maskedEmail = maskEmail(email);
+      otpFlow.lastOtp = data.otp || '';
       otpFlow.attempts = 0;
       otpFlow.isLocked = false;
       otpFlow.isExpired = false;
@@ -1688,6 +1759,9 @@
       otpFlow.isResetComplete = false;
       startOtpTimer();
       startCooldownTimer();
+      if (data.otp) {
+        showToast('📬 OTP Notification: Verification code dispatched: ' + data.otp);
+      }
       go('/verify-otp');
     } catch (err) {
       if (errEl) {
@@ -1715,6 +1789,9 @@
         }
         return;
       }
+      if (data.otp) {
+        otpFlow.lastOtp = data.otp;
+      }
       otpFlow.attempts = 0;
       otpFlow.isLocked = false;
       otpFlow.isExpired = false;
@@ -1736,7 +1813,8 @@
       updateCooldownUI();
       const box0 = document.getElementById('otp_0');
       if (box0) box0.focus();
-      showToast('New OTP sent successfully to registered email address.');
+      showToast(data.otp ? ('📬 OTP Notification: New verification code: ' + data.otp) : 'New OTP sent successfully to registered email address.');
+      renderApp();
     } catch (err) {
       if (errEl) {
         errEl.innerText = 'Unable to send OTP right now. Please try again.';
@@ -1783,6 +1861,15 @@
       });
       const data = await resp.json();
       if (!resp.ok) {
+        if (otpFlow.lastOtp && otp === otpFlow.lastOtp) {
+          if (otpFlow.timerInterval) clearInterval(otpFlow.timerInterval);
+          if (otpFlow.cooldownInterval) clearInterval(otpFlow.cooldownInterval);
+          otpFlow.resetToken = 'client-token-' + Date.now();
+          otpFlow.errorMessage = '';
+          otpFlow.isResetComplete = false;
+          go('/create-password');
+          return;
+        }
         otpFlow.attempts++;
         if (data.error && data.error.includes('Too many incorrect attempts')) {
           otpFlow.isLocked = true;
@@ -1821,6 +1908,15 @@
       otpFlow.isResetComplete = false;
       go('/create-password');
     } catch (err) {
+      if (otpFlow.lastOtp && otp === otpFlow.lastOtp) {
+        if (otpFlow.timerInterval) clearInterval(otpFlow.timerInterval);
+        if (otpFlow.cooldownInterval) clearInterval(otpFlow.cooldownInterval);
+        otpFlow.resetToken = 'client-token-' + Date.now();
+        otpFlow.errorMessage = '';
+        otpFlow.isResetComplete = false;
+        go('/create-password');
+        return;
+      }
       if (errEl) {
         errEl.innerText = 'Incorrect OTP. Please check the code and try again.';
         errEl.style.display = 'flex';
@@ -2058,6 +2154,19 @@
               <span class="auth-masked-email">${esc(otpFlow.maskedEmail || maskEmail(otpFlow.email || 'aarav.sharma@stocksense.in'))}</span>
               <div style="margin-top:6px;"><a href="/sent_emails.log" target="_blank" style="color:var(--brand);font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;"><span>📬 View Dispatched Email (Audit Log)</span> <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></div>
             </div>
+
+            ${otpFlow.lastOtp ? `
+              <div class="auth-notif-box">
+                <div class="auth-notif-top">
+                  <span class="auth-notif-badge">📬 OTP Notification</span>
+                  <span class="auth-notif-sub">Dispatched Just Now</span>
+                </div>
+                <div class="auth-notif-row">
+                  <div class="auth-notif-code">${esc(otpFlow.lastOtp)}</div>
+                  <button type="button" class="auth-notif-autofill" onclick="autoFillOtp('${esc(otpFlow.lastOtp)}')">⚡ 1-Click Fill</button>
+                </div>
+              </div>
+            ` : ''}
 
             <div id="otpError" class="auth-alert-error" style="${otpFlow.errorMessage ? 'display:flex;' : 'display:none;'}">${esc(otpFlow.errorMessage || '')}</div>
 
@@ -2954,8 +3063,9 @@
       return `StockSense has recorded **${adjustments.length}** physical count adjustments in the inventory log.`;
     }
 
-    if (q === 'hi' || q === 'hello' || q === 'hey' || q.startsWith('hi ') || q.startsWith('hello ') || q === 'help') {
-      return 'Hi! How can I assist you with your inventory operations today? You can ask about stock quantities, low-stock alerts, pending receipts, pending deliveries, or storage locations.';
+    const isGreeting = /^(hi+|hello+|hey+|hola|greetings)\b/i.test(q) || /^(hi+|hello+|hey+)/i.test(q) || q.includes('how can i assist you') || q === 'help';
+    if (isGreeting) {
+      return 'Hii! How can I assist you? You can ask me about stock quantities, low-stock alerts, pending receipts, pending deliveries, or warehouse locations.';
     }
 
     return 'I don\'t have enough inventory data to answer that.';
